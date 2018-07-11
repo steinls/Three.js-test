@@ -4,11 +4,22 @@
 	<meta charset="UTF-8">
 	<title></title>
 	<script src="../libs/three.js"></script>
+	<script src="../libs/stats.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<style>
+		#stats-output{
+			position: absolute;
+			left: 0;
+			top: 0;
+		}
+	</style>
 </head>
 <body>
 	<div id="webgl-output"></div>
+	<div id="stats-output"></div>
 	<script>
 		var scene,camera,renderer;
+		var stats;
 
 		function init() {
 			// 场景负责：保存，跟踪，添加到里面的对象。
@@ -82,13 +93,23 @@
 
 		};
 
+		function initStats() {
+			stats = new Stats();
+			// 0:fps(监听1秒内渲染帧数)。1:渲染时间
+			stats.setMode(0);
+			$('#stats-output').append(stats.domElement);
+		}
+
 		function render() {
+			stats.update();
+			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
 
 
 		onload = function() {
 			init();
+			initStats();
 			addObject();
 			render();
 		};
