@@ -20,6 +20,7 @@
 	<script>
 		var scene,camera,renderer;
 		var stats;
+		var angle = 0;
 
 		function init() {
 			// 场景负责：保存，跟踪，添加到里面的对象。
@@ -84,6 +85,7 @@
 			sphere.position.x = 20;
 			sphere.position.y = 4;
 			sphere.position.z = 2;
+			sphere.name = 'sphere';
 			scene.add(sphere);
 
 
@@ -107,6 +109,10 @@
 			scene.getObjectByName('cube').rotation.x += 0.02;
 			scene.getObjectByName('cube').rotation.y += 0.02;
 			scene.getObjectByName('cube').rotation.z += 0.02;
+
+			angle += 0.02;
+			scene.getObjectByName('sphere').position.x = 20 + (10 * (Math.cos(angle)));
+			scene.getObjectByName('sphere').position.y = 2 + (10 * Math.abs((Math.sin(angle))));
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
