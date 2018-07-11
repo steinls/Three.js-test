@@ -6,6 +6,7 @@
 	<script src="../libs/three.js"></script>
 	<script src="../libs/stats.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/dat.gui.js"></script>
 	<style>
 		#stats-output{
 			position: absolute;
@@ -21,6 +22,7 @@
 		var scene,camera,renderer;
 		var stats;
 		var angle = 0;
+		var controls,gui;
 
 		function init() {
 			// 场景负责：保存，跟踪，添加到里面的对象。
@@ -104,13 +106,23 @@
 			$('#stats-output').append(stats.domElement);
 		}
 
+		function initControls() {
+			controls = new function() {
+				this.rotationSpeed = 0.02;
+				this.angleSpeed = 0.02;
+			};
+			gui = new dat.GUI();
+			gui.add(controls,'rotationSpeed',0,0.5);
+			gui.add(controls,'angleSpeed',0,0.5);
+		}
+
 		function render() {
 			stats.update();
-			scene.getObjectByName('cube').rotation.x += 0.02;
-			scene.getObjectByName('cube').rotation.y += 0.02;
-			scene.getObjectByName('cube').rotation.z += 0.02;
+			scene.getObjectByName('cube').rotation.x += controls.rotationSpeed;
+			scene.getObjectByName('cube').rotation.y += controls.rotationSpeed;
+			scene.getObjectByName('cube').rotation.z += controls.rotationSpeed;
 
-			angle += 0.02;
+			angle += controls.angleSpeed;
 			scene.getObjectByName('sphere').position.x = 20 + (10 * (Math.cos(angle)));
 			scene.getObjectByName('sphere').position.y = 2 + (10 * Math.abs((Math.sin(angle))));
 			requestAnimationFrame(render);
@@ -121,6 +133,7 @@
 		onload = function() {
 			init();
 			initStats();
+			initControls();
 			addObject();
 			render();
 		};
