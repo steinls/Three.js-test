@@ -7,6 +7,7 @@
 	<script src="../libs/stats.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/AsciiEffect.js"></script>
 	<style>
 		#stats-output{
 			position: absolute;
@@ -23,6 +24,7 @@
 		var stats;
 		var angle = 0;
 		var controls,gui;
+		var effect;
 
 		function init() {
 			// 场景负责：保存，跟踪，添加到里面的对象。
@@ -39,11 +41,15 @@
 			renderer = new THREE.WebGLRenderer();
 			// 设置背景颜色
 			renderer.setClearColor(new THREE.Color(0xEEEEEE));
-			// 设置渲染器大小
-			renderer.setSize(window.innerWidth,window.innerHeight);
-			// 将渲染器的输出添加到html元素
-			document.getElementById('webgl-output').appendChild(renderer.domElement);
+			// // 设置渲染器大小
+			// renderer.setSize(window.innerWidth,window.innerHeight);
+			// // 将渲染器的输出添加到html元素
+			// document.getElementById('webgl-output').appendChild(renderer.domElement);
 
+			// 使用ASCII(文本画)效果，渲染
+			effect = new THREE.AsciiEffect(renderer);
+			effect.setSize(window.innerWidth,window.innerHeight);
+			$('#webgl-output').append(effect.domElement);
 		}
 		function addObject() {
 
@@ -126,7 +132,7 @@
 			scene.getObjectByName('sphere').position.x = 20 + (10 * (Math.cos(angle)));
 			scene.getObjectByName('sphere').position.y = 2 + (10 * Math.abs((Math.sin(angle))));
 			requestAnimationFrame(render);
-			renderer.render(scene,camera);
+			effect.render(scene,camera);
 		}
 
 
