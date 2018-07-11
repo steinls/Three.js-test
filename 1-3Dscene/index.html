@@ -70,6 +70,8 @@
 			cube.position.x = -4;
 			cube.position.y = 3;
 			cube.position.z = 0;
+			// 设置名称
+			cube.name = 'cube';
 			// 加入场景
 			scene.add(cube);
 
@@ -102,6 +104,9 @@
 
 		function render() {
 			stats.update();
+			scene.getObjectByName('cube').rotation.x += 0.02;
+			scene.getObjectByName('cube').rotation.y += 0.02;
+			scene.getObjectByName('cube').rotation.z += 0.02;
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
