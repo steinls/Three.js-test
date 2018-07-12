@@ -11,10 +11,16 @@
 		body{
 			overflow: hidden;
 		}
+		.panel{
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
 	</style>
 </head>
 <body>
 	<div id="webgl-output"></div>
+	<div class="panel"></div>
 	<script>
 		var scene,camera,renderer;
 		var controls,stats;
