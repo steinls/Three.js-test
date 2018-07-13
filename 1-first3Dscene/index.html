@@ -61,7 +61,7 @@
 			// 添加光源
 			var spotLight = new THREE.SpotLight(0xffffff);
 			spotLight.position.set(-40,60,-10);
-			// 计算这个光源的阴影
+			// 计算这个光源的阴影（这个光源造成的阴影生效）
 			spotLight.castShadow = true;
 			// 加入场景
 			scene.add(spotLight);
@@ -74,7 +74,7 @@
 			scene.add(axes);
 		}
 
-		function addObject() {
+		function initObject() {
 			// 添加平面
 			// 创建一个宽60，高20的平面几何体
 			var planeGeometry = new THREE.PlaneGeometry(60,20);
@@ -86,7 +86,7 @@
 			plane.position.x = 15;
 			plane.position.y = 0;
 			plane.position.z = 0;
-			// 设置阴影
+			// 接收阴影
 			plane.receiveShadow = true;
 			// 加入场景
 			scene.add(plane);
@@ -177,7 +177,7 @@
 			// 添加物体
 			initAxes();
 			initLight();
-			addObject();
+			initObject();
 			// 检测与操控
 			initStats();
 			initControls();

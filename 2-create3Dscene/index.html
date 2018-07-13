@@ -44,13 +44,14 @@
 			$('#webgl-output').append(renderer.domElement)
 		}
 
-		function addObject() {
+		function initObject() {
 			var axue = new THREE.AxisHelper(30);
 			scene.add(axue);
 
 			var planeGeometry = new THREE.PlaneGeometry(60,40,1,1);
 			var planeMaterial = new THREE.MeshLambertMaterial({color:0xffffff});
 			var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+			// 接收阴影
 			plane.receiveShadow = true;
 			plane.name = 'plane';
 
@@ -77,26 +78,29 @@
 			controls = new function(){
 				this.rotationSpeed = 0.02;
 				this.numberOfObjects = scene.children.length;
+				// 删除方块
 				this.removeCube = function() {
+					// 获取场景里的所有物体
 					var allChildren = scene.children;
 					var lastObject = allChildren[allChildren.length-1];
 					if (lastObject instanceof THREE.Mesh) {
-						// 删除子元素
+						// 删除场景里的物体对象
 						scene.remove(lastObject);
 						this.numberOfObjects = scene.children.length;
 					}
 				};
+				// 添加方块
 				this.addCube = function() {
 					var cubeSize = Math.ceil(Math.random()*3);
 					var cubeGeometry = new THREE.BoxGeometry(cubeSize,cubeSize,cubeSize);
 					var cubeMaterial = new THREE.MeshLambertMaterial({color:Math.random()*0xffffff});
 					var cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
 					cube.name = 'cube'+scene.children.length;
-
 					cube.position.x = -30 + Math.random()*scene.getObjectByName('plane').geometry.parameters.width;
 					cube.position.y = Math.random()*5;
 					cube.position.z = -20+Math.random()*scene.getObjectByName('plane').geometry.parameters.height;
 					cube.castShadow = true;
+					// 往场景里添加物体
 					scene.add(cube);
 					this.numberOfObjects = scene.children.length;
 				};
@@ -135,7 +139,7 @@
 		}
 		onload = function(){
 			init();
-			addObject();
+			initObject();
 			initLight();
 			initControls();
 			initStats();
