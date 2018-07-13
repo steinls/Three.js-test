@@ -126,7 +126,7 @@
 		function render() {
 			stats.update();
 
-			// 在回调函数中传入e(所有子元素)
+			// 在回调函数中传入e(所有场景里的物体元素)
 			scene.traverse(function(e) {
 				if(e instanceof THREE.Mesh && e.name!= 'plane') {
 					e.rotation.x += controls.rotationSpeed;

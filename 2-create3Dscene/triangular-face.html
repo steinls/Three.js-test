@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>使用三角片面，构造几何体</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<div class="webgl"></div>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var mesh;
+		var dotCArray;
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
+			camera.position.set(-20,25,20);
+			camera.lookAt(new THREE.Vector3(5,0,0));
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor(0xEEEEEE);
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.shadowMapEnabled = true;
+			$('.webgl').append(renderer.domElement);
+		}
+		
+		function render() {
+			var vertices = [];
+			for (var i = 0; i < 8; i++) {
+			    vertices.push(new THREE.Vector3(dotCArray[i].x, dotCArray[i].y, dotCArray[i].z));
+			}
+
+			mesh.children.forEach(function (e) {
+			    e.geometry.vertices = vertices;
+			    e.geometry.verticesNeedUpdate = true;
+			    e.geometry.computeFaceNormals();
+			});
+
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function initLight() {
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.position.set(-40,60,10);
+			spotLight.castShadow = true;
+			scene.add(spotLight);
+		}
+
+		function initObject() {
+			var planeGeometry = new THREE.PlaneGeometry(60,40);
+			var planeMaterial = new THREE.MeshLambertMaterial({color:0xffffff});
+			var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+			plane.receiveShadow = true;
+
+			plane.rotation.x = -0.5 * Math.PI;
+			plane.position.set(0,0,0);
+
+			scene.add(plane);
+
+			var axes = new THREE.AxisHelper(20);
+			scene.add(axes);
+
+			// 三点片面创建几何体
+			var vertices = [
+	            new THREE.Vector3(1, 3, 1),
+	            new THREE.Vector3(1, 3, -1),
+	            new THREE.Vector3(1, -1, 1),
+	            new THREE.Vector3(1, -1, -1),
+	            new THREE.Vector3(-1, 3, -1),
+	            new THREE.Vector3(-1, 3, 1),
+	            new THREE.Vector3(-1, -1, -1),
+	            new THREE.Vector3(-1, -1, 1)
+			];
+
+			var faces = [
+				new THREE.Face3(0, 2, 1),
+				new THREE.Face3(2, 3, 1),
+				new THREE.Face3(4, 6, 5),
+				new THREE.Face3(6, 7, 5),
+				new THREE.Face3(4, 5, 1),
+				new THREE.Face3(5, 0, 1),
+				new THREE.Face3(7, 6, 2),
+				new THREE.Face3(6, 3, 2),
+				new THREE.Face3(5, 7, 0),
+				new THREE.Face3(7, 2, 0),
+				new THREE.Face3(1, 3, 4),
+				new THREE.Face3(3, 6, 4),
+			];
+
+			var geom = new THREE.Geometry();
+			geom.vertices = vertices;
+			geom.faces = faces;
+			geom.computeFaceNormals();
+
+			var materials = [
+				new THREE.MeshLambertMaterial({opacuty:0.6,color:0x44ff44,transparent:true}),
+				new THREE.MeshBasicMaterial({
+					color:0x000000,wireframe:true
+				})
+			];
+
+			mesh = THREE.SceneUtils.createMultiMaterialObject(geom,materials)
+			mesh.children.forEach(function(e){
+				e.castShadow = true;
+			});
+			console.log(mesh);
+			scene.add(mesh);
+		}
+
+		function initControls() {
+			var gui = new dat.GUI();
+			// 克隆元素
+			var cloneControls = new function(){
+				this.clone = function(){
+					// 克隆材质，因为THREE.SceneUtils.createMultiMaterialObject
+					// 会给每一个材质创建一个mesh，而它们使用的几何体是同一个
+					// 所以我们只要第一个的几何体
+					var clonedGeometry = mesh.children[0].geometry.clone();
+					var materials = [
+						new THREE.MeshLambertMaterial({opacity:0.6,color:0xff44ff,transparent:true}),
+						new THREE.MeshBasicMaterial({color:0x000000,wireframe:true})
+					];
+
+					var mesh2 = THREE.SceneUtils.createMultiMaterialObject(clonedGeometry,materials);
+
+					mesh2.children.forEach(function(e){
+						e.castShadow = true;
+					});
+
+					// 位移
+					mesh2.translateX(5);
+					mesh2.translateZ(5);
+
+					mesh2.name = 'clone';
+					// 移除之前创建的克隆元素
+					scene.remove(scene.getObjectByName('clone'));
+					
+					scene.add(mesh2);
+				}
+			};
+			gui.add(cloneControls,'clone');
+
+
+
+			// 调整点
+			function dotControls(x,y,z) {
+				this.x = x;
+				this.y = y;
+				this.z = z;
+			}
+
+
+			dotCArray = [
+				new dotControls(1, 3, 1),
+				new dotControls(1, 3, -1),
+				new dotControls(1, -1, 1),
+				new dotControls(1, -1, -1),
+				new dotControls(-1, 3, -1),
+				new dotControls(-1, 3, 1),
+				new dotControls(-1, -1, -1),
+				new dotControls(-1, -1, 1)
+			];
+
+
+			for (var i = 0; i < 8; i++) {
+			    f1 = gui.addFolder('Vertices ' + (i + 1));
+			    f1.add(dotCArray[i], 'x', -10, 10);
+			    f1.add(dotCArray[i], 'y', -10, 10);
+			    f1.add(dotCArray[i], 'z', -10, 10);
+			}
+		}
+
+		onload = function() {
+			init();
+			initObject();
+			initLight();
+			initControls();
+			render();
+		}
+	</script>
+</body>
+</html>
