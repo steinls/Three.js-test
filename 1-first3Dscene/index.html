@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title></title>
+	<title>第一个3d场景(阴影，材质，运动)</title>
 	<script src="../libs/three.js"></script>
 	<script src="../libs/stats.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs/dat.gui.js"></script>
-	<script src="../libs/AsciiEffect.js"></script>
+	<!-- <script src="../libs/AsciiEffect.js"></script> -->
 	<style>
 		#stats-output{
 			position: absolute;
@@ -20,11 +20,12 @@
 	<div id="webgl-output"></div>
 	<div id="stats-output"></div>
 	<script>
+		// init
 		var scene,camera,renderer;
 		var stats;
 		var angle = 0;
 		var controls,gui;
-		var effect;
+		// var effect;
 
 		function init() {
 			// 场景负责：保存，跟踪，添加到里面的对象。
@@ -32,9 +33,11 @@
 
 			// 相机负责：决定你所能看到的场景
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
+			// 调整相机三维坐标，来得到立体视觉效果
 			camera.position.x = -30;
 			camera.position.y = 40;
 			camera.position.z = 30;
+			// 让相机看向场景
 			camera.lookAt(scene.position);
 
 			// 渲染器：计算指定相机角度下浏览器呈现的场景
@@ -53,32 +56,47 @@
 			// effect.setSize(window.innerWidth,window.innerHeight);
 			// $('#webgl-output').append(effect.domElement);
 		}
-		function addObject() {
 
+		function initLight() {
+			// 添加光源
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.position.set(-40,60,-10);
+			// 计算这个光源的阴影
+			spotLight.castShadow = true;
+			// 加入场景
+			scene.add(spotLight);
+		}
+
+		function initAxes() {
 			// 在屏幕上显示轴
 			var axes = new THREE.AxisHelper(20);
+			// 加入场景
 			scene.add(axes);
+		}
 
-			// 添加物体
-			// 创建一个宽60，高20的平面
+		function addObject() {
+			// 添加平面
+			// 创建一个宽60，高20的平面几何体
 			var planeGeometry = new THREE.PlaneGeometry(60,20);
-			// 
+			// 创建兰伯特感光材质，因为需要阴影而基础材质(MeshBasicMaterial)不感光
+			// 设置颜色0xffffff
 			var planeMaterial = new THREE.MeshLambertMaterial({color:0xffffff});
 			var plane = new THREE.Mesh(planeGeometry,planeMaterial);
 			plane.rotation.x = -0.5 * Math.PI;
 			plane.position.x = 15;
 			plane.position.y = 0;
 			plane.position.z = 0;
-
 			// 设置阴影
 			plane.receiveShadow = true;
-
+			// 加入场景
 			scene.add(plane);
 
 
 			// 添加方块
+			// 创建盒子几何体
 			var cubeGeometry = new THREE.BoxGeometry(4,4,4);
-			var cubeMaterial = new THREE.MeshLambertMaterial({color:0xff0000});
+			// 创建兰伯特感光材质，设置颜色0xff0000, 并用线框展示
+			var cubeMaterial = new THREE.MeshLambertMaterial({color:0xff0000,wireframe:true});
 			var cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
 			// 设置方块定位
 			cube.position.x = -4;
@@ -104,36 +122,38 @@
 			sphere.castShadow = true;
 			scene.add(sphere);
 
-
-			// 添加光源
-			var spotLight = new THREE.SpotLight(0xffffff);
-			spotLight.position.set(-40,60,-10);
-			// 计算这个光源的阴影
-			spotLight.castShadow = true;
-			scene.add(spotLight);
-
-
 		};
 
+		// 性能检测器
 		function initStats() {
+			// 创建 性能检测器 实例
 			stats = new Stats();
+			// 设置检测类型
 			// 0:fps(监听1秒内渲染帧数)。1:渲染时间
 			stats.setMode(0);
+			// 要在那个元素上渲染
 			$('#stats-output').append(stats.domElement);
 		}
 
+		// 自定义dat.gui控制面板
 		function initControls() {
+			// 设置要操控的对象
 			controls = new function() {
 				this.rotationSpeed = 0.02;
 				this.angleSpeed = 0.02;
 			};
+			// 创建gui实例
 			gui = new dat.GUI();
+			// 创建操控controls对象里的rotationSpeed属性的控件，取值范围0到0.5
 			gui.add(controls,'rotationSpeed',0,0.5);
 			gui.add(controls,'angleSpeed',0,0.5);
 		}
 
 		function render() {
+			// 性能检测器数据更新
 			stats.update();
+			// 获取场景内名称为cube的物体
+			// scene.getObjectByName('cube') 
 			scene.getObjectByName('cube').rotation.x += controls.rotationSpeed;
 			scene.getObjectByName('cube').rotation.y += controls.rotationSpeed;
 			scene.getObjectByName('cube').rotation.z += controls.rotationSpeed;
@@ -141,19 +161,27 @@
 			angle += controls.angleSpeed;
 			scene.getObjectByName('sphere').position.x = 20 + (10 * (Math.cos(angle)));
 			scene.getObjectByName('sphere').position.y = 2 + (10 * Math.abs((Math.sin(angle))));
+			// HTML5动画api，类似与定时器，
+			// 但能根据浏览器来调整频率，切换到其他应用时会停止，切换回又继续播放
 			requestAnimationFrame(render);
+			// 渲染场景
 			renderer.render(scene,camera);
-
 			// // 使用ASCII(文本画)效果，渲染
 			// effect.render(scene,camera);
 		}
 
 
 		onload = function() {
+			// 初始化相机，场景，渲染器
 			init();
+			// 添加物体
+			initAxes();
+			initLight();
+			addObject();
+			// 检测与操控
 			initStats();
 			initControls();
-			addObject();
+			// 渲染
 			render();
 		};
 	</script>

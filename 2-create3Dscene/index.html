@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>创建3d场景</title>
+	<title>scene中物体的增删改查</title>
 	<script src="../libs/three.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs/dat.gui.js"></script>
@@ -81,6 +81,7 @@
 					var allChildren = scene.children;
 					var lastObject = allChildren[allChildren.length-1];
 					if (lastObject instanceof THREE.Mesh) {
+						// 删除子元素
 						scene.remove(lastObject);
 						this.numberOfObjects = scene.children.length;
 					}
@@ -121,6 +122,7 @@
 		function render() {
 			stats.update();
 
+			// 在回调函数中传入e(所有子元素)
 			scene.traverse(function(e) {
 				if(e instanceof THREE.Mesh && e.name!= 'plane') {
 					e.rotation.x += controls.rotationSpeed;
