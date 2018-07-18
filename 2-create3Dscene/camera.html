@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>两种相机的组合与应用</title>
+	<style>
+		body{
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<div class="output"></div>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var sceneOrtho,cameraOrtho;
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+
+		function init() {
+			scene = new THREE.Scene();
+			sceneOrtho = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,width/height,0.1,1000);
+			camera.position.set(-30,40,30);
+
+			// 相机看向某个点
+			camera.lookAt(scene.position);
+
+			cameraOrtho = new THREE.OrthographicCamera(-width/2,width/2,height/2,-height/2,1,2);
+			cameraOrtho.position.z = 1.2;
+
+			renderer = new THREE.WebGLRenderer();
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			// 定义是否在渲染帧之前自动清除之前的内容
+			renderer.autoClear = false;
+			renderer.setClearColor('gray');
+			$('.output').append(renderer.domElement);
+		}
+
+		function initAd() {
+			var planeG = new THREE.PlaneGeometry(200,200);
+			var planeM = new THREE.MeshBasicMaterial({color:'green'});
+			var plane = new THREE.Mesh(planeG,planeM);
+			plane.position.set(-width/2+planeG.parameters.width/2,height/2-planeG.parameters.height/2,0);
+			sceneOrtho.add(plane);
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			scene.getObjectByName('cube').rotation.x += 0.02;
+			scene.getObjectByName('cube').rotation.y += 0.02;
+			scene.getObjectByName('cube').rotation.z += 0.02;
+			renderer.render(scene,camera);
+			renderer.render(sceneOrtho,cameraOrtho);
+		}
+
+		function initLight() {
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.position.set(-20,30,20);
+			scene.add(spotLight);
+		}
+
+		function initObject() {
+			var cubeG = new THREE.BoxGeometry(8,8,8);
+			var cubeM = new THREE.MeshLambertMaterial({color:'red'});
+			var cube = new THREE.Mesh(cubeG,cubeM);
+			cube.name = 'cube';
+			scene.add(cube);
+		}
+
+		$(function(){
+			init();
+			initAd();
+			initLight();
+			initObject();
+			render();
+		});
+	</script>
+</body>
+</html>
