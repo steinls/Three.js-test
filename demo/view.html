@@ -21,9 +21,8 @@
 			var camera, scene, renderer;
 			var cameraOrtho, sceneOrtho;
 			var width,height;
-			// var spriteTL, spriteTR, spriteBL, spriteBR, spriteC;
-			// var mapC;
-			// var group;
+			var mouse,raycaster,objects = [];
+
 			init();
 			initObject();
 			animate();
@@ -47,17 +46,23 @@
 				// renderer
 				renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setClearColor('gray');
 				renderer.autoClear = false;
 				document.body.appendChild( renderer.domElement );
+
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector2();
+				document.addEventListener('mousedown', onDocumentMouseDown, false );
 			}
 			function initObject() {
 				var planeG = new THREE.PlaneGeometry(width/3,height);
 				// var planeM = new THREE.MeshLambertMaterial({color:'red'});
-				var planeM = new THREE.MeshBasicMaterial({color:'red'});
+				var planeM = new THREE.MeshBasicMaterial({color:'green'});
 				var plane = new THREE.Mesh(planeG,planeM);
 				plane.position.set(-width/2-planeG.parameters.width/2,0,0);
 				plane.name = 'plane';
 				sceneOrtho.add(plane);
+				objects.push(plane);
 			}
 			function animate() {
 				requestAnimationFrame( animate );
@@ -77,6 +82,21 @@
 				renderer.clearDepth();
 				renderer.render( sceneOrtho, cameraOrtho );
 			}
+
+			function onDocumentMouseDown( event ) {
+				console.log(event.clientX,event.clientY);
+				console.log(event.clientX / window.innerWidth* 2,event.clientY / window.innerHeight* 2);
+				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+				console.log(mouse.x,mouse.y);
+				raycaster.setFromCamera( mouse, cameraOrtho );
+				var intersects = raycaster.intersectObjects(objects);
+				console.log(intersects);
+				for ( var i = 0; i < intersects.length; i++ ) {
+					intersects[ i ].object.material.color.set( 0xff0000 );
+				}
+			}
+
 		</script>
 	</body>
 </html>

@@ -20,6 +20,7 @@
 		var sceneOrtho,cameraOrtho;
 		var width = window.innerWidth;
 		var height = window.innerHeight;
+		var mouse,raycaster,objects = [];
 
 		function init() {
 			scene = new THREE.Scene();
@@ -55,7 +56,9 @@
 			scene.getObjectByName('cube').rotation.x += 0.02;
 			scene.getObjectByName('cube').rotation.y += 0.02;
 			scene.getObjectByName('cube').rotation.z += 0.02;
+			renderer.clear();
 			renderer.render(scene,camera);
+			renderer.clearDepth();
 			renderer.render(sceneOrtho,cameraOrtho);
 		}
 
@@ -71,13 +74,36 @@
 			var cube = new THREE.Mesh(cubeG,cubeM);
 			cube.name = 'cube';
 			scene.add(cube);
+			
+			objects.push(cube);
 		}
+
+		function initSelect() {
+			raycaster = new THREE.Raycaster();
+			mouse = new THREE.Vector2();
+
+			function mouseDown(event) {
+				mouse.x = (event.clientX/window.innerWidth)*2 - 1;
+				mouse.y = -(event.clientY/window.innerHeight)*2 + 1;
+				raycaster.setFromCamera(mouse,camera);
+				intersects = raycaster.intersectObjects(objects);
+				if(intersects.length > 0){
+					intersects.forEach(function(value){
+						value.object.material.color.set('blue');
+					});
+				}
+			}
+
+			$(document).on('click',mouseDown);
+		}
+		
 
 		$(function(){
 			init();
 			initAd();
 			initLight();
 			initObject();
+			initSelect();
 			render();
 		});
 	</script>
