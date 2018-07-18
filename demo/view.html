@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - sprites</title>
+		<meta charset="utf-8">
+		<style>
+			body {
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<script src="../libs/three.js"></script>
+		<script>
+			var s = true;
+
+			var camera, scene, renderer;
+			var cameraOrtho, sceneOrtho;
+			var width,height;
+			// var spriteTL, spriteTR, spriteBL, spriteBR, spriteC;
+			// var mapC;
+			// var group;
+			init();
+			initObject();
+			animate();
+			function init() {
+				width = window.innerWidth;
+				height = window.innerHeight;
+				
+				// 相机
+				camera = new THREE.PerspectiveCamera( 60, width / height, 1, 2100 );
+				camera.position.z = 1500;
+				
+				cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, 0.1, 0.3 );
+				cameraOrtho.position.z = 0.2;
+				
+				// 创建场景
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x000000, 1500, 2100 );
+				
+				sceneOrtho = new THREE.Scene();
+				
+				// renderer
+				renderer = new THREE.WebGLRenderer();
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.autoClear = false;
+				document.body.appendChild( renderer.domElement );
+			}
+			function initObject() {
+				var planeG = new THREE.PlaneGeometry(width/3,height);
+				// var planeM = new THREE.MeshLambertMaterial({color:'red'});
+				var planeM = new THREE.MeshBasicMaterial({color:'red'});
+				var plane = new THREE.Mesh(planeG,planeM);
+				plane.position.set(-width/2-planeG.parameters.width/2,0,0);
+				plane.name = 'plane';
+				sceneOrtho.add(plane);
+			}
+			function animate() {
+				requestAnimationFrame( animate );
+				render();
+			}
+			function render() {
+				var plane = sceneOrtho.getObjectByName('plane');
+				if(s){
+					if(plane.position.x < -width/2+plane.geometry.parameters.width/2){
+						plane.position.x+=8;
+					}else{
+						plane.position.x = -width/2+plane.geometry.parameters.width/2;
+					}
+				}
+				renderer.clear();
+				renderer.render( scene, camera );
+				renderer.clearDepth();
+				renderer.render( sceneOrtho, cameraOrtho );
+			}
+		</script>
+	</body>
+</html>
