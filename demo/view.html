@@ -22,6 +22,7 @@
 			var cameraOrtho, sceneOrtho;
 			var width,height;
 			var mouse,raycaster,objects = [];
+			var left =-window.innerWidth/2;
 
 			init();
 			initObject();
@@ -59,24 +60,28 @@
 				// var planeM = new THREE.MeshLambertMaterial({color:'red'});
 				var planeM = new THREE.MeshBasicMaterial({color:'green'});
 				var plane = new THREE.Mesh(planeG,planeM);
-				plane.position.set(-width/2-planeG.parameters.width/2,0,0);
+				plane.position.set(-width/2+planeG.parameters.width/2,0,0);
 				plane.name = 'plane';
 				sceneOrtho.add(plane);
-				objects.push(plane);
+				// objects.push(plane);
+
+				for(let i = 0;i<7;i++){
+					var cplaneG = new THREE.PlaneGeometry(320,50);
+					var cplaneM = new THREE.MeshBasicMaterial({color:'blue'});
+					var cplane = new THREE.Mesh(cplaneG,cplaneM);
+					cplane.position = left;
+					cplane.position.x = left+cplaneG.parameters.width/2+20;
+					cplane.position.y += i*80 - 80;
+					cplane.position.z = 0;
+					sceneOrtho.add(cplane);
+					objects.push(cplane);
+				}
 			}
 			function animate() {
 				requestAnimationFrame( animate );
 				render();
 			}
 			function render() {
-				var plane = sceneOrtho.getObjectByName('plane');
-				if(s){
-					if(plane.position.x < -width/2+plane.geometry.parameters.width/2){
-						plane.position.x+=8;
-					}else{
-						plane.position.x = -width/2+plane.geometry.parameters.width/2;
-					}
-				}
 				renderer.clear();
 				renderer.render( scene, camera );
 				renderer.clearDepth();
