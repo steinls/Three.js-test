@@ -16,13 +16,13 @@
 	<body>
 		<script src="../libs/three.js"></script>
 		<script>
-			var s = true;
-
 			var camera, scene, renderer;
 			var cameraOrtho, sceneOrtho;
 			var width,height;
 			var mouse,raycaster,objects = [];
-			var left =-window.innerWidth/2;
+			var listGroup;
+			var startY = 0,endY = 0,offsetY=0;
+			var cplaneOffsetY = 0;
 
 			init();
 			initObject();
@@ -31,20 +31,17 @@
 				width = window.innerWidth;
 				height = window.innerHeight;
 				
-				// 相机
 				camera = new THREE.PerspectiveCamera( 60, width / height, 1, 2100 );
 				camera.position.z = 1500;
 				
-				cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, 0.1, 0.3 );
+				cameraOrtho = new THREE.OrthographicCamera( - width / 2, width / 2, height / 2, - height / 2, 0.1, 10 );
 				cameraOrtho.position.z = 0.2;
 				
-				// 创建场景
 				scene = new THREE.Scene();
 				scene.fog = new THREE.Fog( 0x000000, 1500, 2100 );
 				
 				sceneOrtho = new THREE.Scene();
 				
-				// renderer
 				renderer = new THREE.WebGLRenderer();
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.setClearColor('gray');
@@ -54,28 +51,54 @@
 				raycaster = new THREE.Raycaster();
 				mouse = new THREE.Vector2();
 				document.addEventListener('mousedown', onDocumentMouseDown, false );
+				document.addEventListener('touchstart', onTouchStart, false );
+				document.addEventListener('touchmove', onTouchMove, false );
+				document.addEventListener('touchend', onTouchEnd, false );
+
 			}
 			function initObject() {
-				var planeG = new THREE.PlaneGeometry(width/3,height);
+				var planeG = new THREE.PlaneGeometry(width,height);
 				// var planeM = new THREE.MeshLambertMaterial({color:'red'});
 				var planeM = new THREE.MeshBasicMaterial({color:'green'});
 				var plane = new THREE.Mesh(planeG,planeM);
-				plane.position.set(-width/2+planeG.parameters.width/2,0,0);
 				plane.name = 'plane';
 				sceneOrtho.add(plane);
-				// objects.push(plane);
+				objects.push(plane);
 
-				for(let i = 0;i<7;i++){
-					var cplaneG = new THREE.PlaneGeometry(320,50);
-					var cplaneM = new THREE.MeshBasicMaterial({color:'blue'});
+
+				var topPlaneG = new THREE.PlaneGeometry(width,height/8);
+				// var planeM = new THREE.MeshLambertMaterial({color:'red'});
+				var topPlaneM = new THREE.MeshBasicMaterial({color:'gray'});
+				var topPlane = new THREE.Mesh(topPlaneG,topPlaneM);
+				topPlane.position.set(0,0+height/2-topPlaneG.parameters.height/2,0.1);
+				sceneOrtho.add(topPlane);
+
+				listGroup = new THREE.Object3D();
+				listGroup.h = 0;
+				for(let i = 0;i<16;i++){
+					var cplaneG = new THREE.PlaneGeometry(width-16,height/14);
+					var canvas = document.createElement('canvas');
+					canvas.width = cplaneG.parameters.width;
+					canvas.height = cplaneG.parameters.height;
+					var ctx = canvas.getContext('2d');
+					ctx.fillStyle = '#ffffff';
+					ctx.fillRect(0,0,canvas.width,canvas.height);
+					ctx.fillStyle = '#000000';
+					ctx.font="60px Arial";
+					ctx.fillText("Hello World",20,30+canvas.height/2);
+					var texture = new THREE.CanvasTexture(canvas);
+					var cplaneM = new THREE.MeshBasicMaterial({map:texture});
 					var cplane = new THREE.Mesh(cplaneG,cplaneM);
-					cplane.position = left;
-					cplane.position.x = left+cplaneG.parameters.width/2+20;
-					cplane.position.y += i*80 - 80;
+					cplaneOffsetY = cplaneG.parameters.height/2+10+height/8;
+					cplane.position.y = height/2-cplaneOffsetY;
+					cplane.position.y += i*(-height/14-8);
 					cplane.position.z = 0;
-					sceneOrtho.add(cplane);
+					listGroup.h += cplaneG.parameters.height+8;
+					listGroup.add(cplane);
 					objects.push(cplane);
 				}
+				sceneOrtho.add(listGroup);
+				// listGroup.translateY(-300)
 			}
 			function animate() {
 				requestAnimationFrame( animate );
@@ -89,19 +112,36 @@
 			}
 
 			function onDocumentMouseDown( event ) {
-				console.log(event.clientX,event.clientY);
-				console.log(event.clientX / window.innerWidth* 2,event.clientY / window.innerHeight* 2);
 				mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
 				mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
-				console.log(mouse.x,mouse.y);
 				raycaster.setFromCamera( mouse, cameraOrtho );
 				var intersects = raycaster.intersectObjects(objects);
-				console.log(intersects);
 				for ( var i = 0; i < intersects.length; i++ ) {
-					intersects[ i ].object.material.color.set( 0xff0000 );
+					// intersects[ i ].object.material.color.set( 0xff0000 );
 				}
+				console.log(intersects);
 			}
 
+			function onTouchStart(event) {
+				startY = event.changedTouches[0].pageY;
+			}
+			function onTouchMove(event) {
+				endY = event.changedTouches[0].pageY;
+				offsetY = startY-endY;
+				startY = event.changedTouches[0].pageY;
+				listGroup.translateY(offsetY);
+			}
+			function onTouchEnd(event) {
+				// 列表可视高度
+				var listHeight = listGroup.h-(height-cplaneOffsetY);
+				console.log(listHeight)
+				if(listGroup.position.y<0){
+					listGroup.position.y = 0;
+				}else if(listGroup.position.y > listHeight){
+					listGroup.position.y = listHeight;
+				}
+				offsetY = 0;
+			}
 		</script>
 	</body>
 </html>
