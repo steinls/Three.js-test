@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>光源</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var controls;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
+			camera.position.set(-30,40,30);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+			renderer.shadowMap.enabled = true;
+		}
+		
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject() {
+			var planeG = new THREE.PlaneGeometry(60,20);
+			var planeM = new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
+			var plane = new THREE.Mesh(planeG,planeM);
+			plane.receiveShadow = true;
+			plane.position.set(15,0,0);
+			plane.rotation.x = -0.5*Math.PI;
+			scene.add(plane);
+
+			var cubeG = new THREE.BoxGeometry(2,2,2);
+			var cubeM = new THREE.MeshLambertMaterial({color:'red'});
+			var cube = new THREE.Mesh(cubeG,cubeM);
+			cube.castShadow = true;
+			cube.position.set(-4,2,0);
+			scene.add(cube);
+
+			var sphereG = new THREE.SphereGeometry(4,20,20);
+			var sphereM = new THREE.MeshLambertMaterial({color:'blue'});
+			var sphere = new THREE.Mesh(sphereG,sphereM);
+			sphere.castShadow = true;
+			sphere.position.set(20,4,2);
+			scene.add(sphere);
+
+
+
+		}
+
+		function addLight() {
+			var ambientLight = new THREE.AmbientLight(0x0c0c0c);
+			ambientLight.name = 'ambientLight';
+			scene.add(ambientLight);
+
+			var spotLight = new THREE.SpotLight(0xffffff);
+			spotLight.name = 'spotLight';
+			spotLight.shadow.mapSize.width = 2048;
+			spotLight.shadow.mapSize.height = 2048;
+			spotLight.position.set(-40, 60, -10);
+			spotLight.castShadow = true;
+			scene.add(spotLight);
+
+		}
+
+		function addGui() {
+			var gui = new dat.GUI();
+			function createAmbientMenu(name,show = true) {
+				var ambient = gui.addFolder(name);
+				var controls = new function (){
+					this.color = 0x0c0c0c;
+					this.show = show;
+				}
+				ambient.addColor(controls,'color').onChange(function(e){
+					var obj = scene.getObjectByName(name);
+					obj.color = new THREE.Color(e);
+				});
+				ambient.add(controls,'show').onChange(function(e){
+					var obj = scene.getObjectByName(name);
+					obj.visible = e;
+				});
+			}
+
+			createAmbientMenu('ambientLight');
+		}
+
+		function addControls() {
+			controls = new THREE.OrbitControls(camera,renderer.domElement)
+		}
+
+		$(function(){
+			init();
+			addObject();
+			addLight();
+			addGui();
+			addControls();
+			render();
+		})
+	</script>
+</body>
+</html>
