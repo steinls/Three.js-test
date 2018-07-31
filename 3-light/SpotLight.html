@@ -157,10 +157,6 @@
 			spotc.add(spotControls,'distance',1,100).onChange(function(e){
 				scene.getObjectByName('spotLight').distance = e;
 			});
-			spotc.add(spotControls,'visible').onChange(function(e){
-				scene.getObjectByName('spotLight').visible = e;
-				scene.getObjectByName('spotSphere').visible = e;
-			});
 
 
 			spotc.add(spotControls,'exponent',0,100).onChange(function(e){
@@ -174,6 +170,10 @@
 			});
 			spotc.add(spotControls,'castShadow').onChange(function(e){
 				scene.getObjectByName('spotLight').castShadow = e;
+			});
+			spotc.add(spotControls,'visible').onChange(function(e){
+				scene.getObjectByName('spotLight').visible = e;
+				scene.getObjectByName('spotSphere').visible = e;
 			});
 
 			spotc.add(spotControls,'target',['plane','cube','sphere']).onChange(function(e){
