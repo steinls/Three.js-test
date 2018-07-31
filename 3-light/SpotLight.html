@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>环点光</title>
+	<title>方向点光</title>
 	<style>
 		body{
 			overflow: hidden;
@@ -20,7 +20,9 @@
 	<script>
 		var scene,camera,renderer;
 		var controls;
-		var sphere,point,phase,invert,R;
+		var sphere,spot,phase,invert,R;
+		var plane,cube,sphere0;
+		var spotLightHelper;
 
 		function init() {
 			scene = new THREE.Scene();
@@ -36,6 +38,7 @@
 		}
 		
 		function render() {
+			spotLightHelper.update();
 			requestAnimationFrame(render);
 			animation();
 			renderer.render(scene,camera);
@@ -44,7 +47,7 @@
 		function addObject() {
 			var planeG = new THREE.PlaneGeometry(60, 20, 20, 20);
 			var planeM = new THREE.MeshLambertMaterial({color:0xffffff,side:THREE.DoubleSide});
-			var plane = new THREE.Mesh(planeG,planeM);
+			plane = new THREE.Mesh(planeG,planeM);
 			plane.receiveShadow = true;
 			plane.position.set(15,0,0);
 			plane.rotation.x = -0.5*Math.PI;
@@ -52,17 +55,17 @@
 
 			var cubeG = new THREE.BoxGeometry(2,2,2);
 			var cubeM = new THREE.MeshLambertMaterial({color:'red'});
-			var cube = new THREE.Mesh(cubeG,cubeM);
+			cube = new THREE.Mesh(cubeG,cubeM);
 			cube.castShadow = true;
 			cube.position.set(-4,2,0);
 			scene.add(cube);
 
 			var sphereG = new THREE.SphereGeometry(4,20,20);
 			var sphereM = new THREE.MeshLambertMaterial({color:'blue'});
-			var sphere = new THREE.Mesh(sphereG,sphereM);
-			sphere.castShadow = true;
-			sphere.position.set(28,4,0);
-			scene.add(sphere);
+			sphere0 = new THREE.Mesh(sphereG,sphereM);
+			sphere0.castShadow = true;
+			sphere0.position.set(28,4,0);
+			scene.add(sphere0);
 
 
 
@@ -74,18 +77,36 @@
 			scene.add(ambientLight);
 
 
-			point = new THREE.PointLight('#ffffff');
-			point.name = 'pointLight';
-			point.distance = 100;
-			point.castShadow = true;
-			scene.add(point);
+      var spotColor = "#ffffff";
+      spot = new THREE.SpotLight(spotColor);
+      spot.name = 'spotLight'
+      spot.position.set(-40, 60, -10);
+      spot.castShadow = true;
+      spot.distance = 0;
+
+      // 投影近点
+      spot.shadow.camera.near = 2;
+      // 投影远点
+      spot.shadow.camera.far = 200;
+      // 投影大小
+      spot.shadow.camera.fov = 30;
+      // 指向某物体
+      spot.target = plane;
+      // 光柱宽度
+      spot.angle = 0.4;
+      scene.add(spot);
+
+      spotLightHelper = new THREE.SpotLightHelper( spot );
+      spotLightHelper.visible = false;
+      scene.add( spotLightHelper );
+
 
 			var sphereG = new THREE.SphereGeometry(0.2);
 			var sphereM = new THREE.MeshBasicMaterial({color:'yellow'});
 			sphere = new THREE.Mesh(sphereG,sphereM);
-			sphere.name = 'pointSphere';
+			sphere.name = 'spotSphere';
 			sphere.castShadow = true;
-			sphere.position.set(3,0,3);
+			sphere.position.set(3,20,3);
 			scene.add(sphere);
 		}
 
@@ -105,27 +126,72 @@
 				obj.visible = e;
 			});
 
-			var point = gui.addFolder('pointLight');
-			var pointControls = new function(){
+			var spotc = gui.addFolder('spotLight');
+			var spotControls = new function(){
 				this.color = '#ccffcc';
 				this.intensity = 1;
 				this.distance = 100;
 				this.visible = true;
+
+				// 光强衰减指数
+				this.exponent = 30;
+				// 光柱宽度
+				this.angle = 0.4;
+				// 光源模型，可以看到光源，以及阴影如何生成
+				this.shadowCameraVisible = false;
+				// 阴影生成 
+				this.castShadow = true;
+				// // 只生成阴影，不产生光,在新版three中被移除
+				// this.onlyShadow = false;
+				// 面向某物体,类似于相机的lookAt()
+				this.target = 'plane';
+				this.spotLightHelper = false;
 			}
-			point.addColor(pointControls,'color').onChange(function(e){
-				scene.getObjectByName('pointLight').color = new THREE.Color(e);
-				scene.getObjectByName('pointSphere').material.color = new THREE.Color(e);
+			spotc.addColor(spotControls,'color').onChange(function(e){
+				scene.getObjectByName('spotLight').color = new THREE.Color(e);
+				scene.getObjectByName('spotSphere').material.color = new THREE.Color(e);
 			});
-			point.add(pointControls,'intensity',0,3).onChange(function(e){
-				scene.getObjectByName('pointLight').intensity = e;
+			spotc.add(spotControls,'intensity',0,3).onChange(function(e){
+				scene.getObjectByName('spotLight').intensity = e;
 			});
-			point.add(pointControls,'distance',1,100).onChange(function(e){
-				scene.getObjectByName('pointLight').distance = e;
+			spotc.add(spotControls,'distance',1,100).onChange(function(e){
+				scene.getObjectByName('spotLight').distance = e;
 			});
-			point.add(pointControls,'visible').onChange(function(e){
-				scene.getObjectByName('pointLight').visible = e;
-				scene.getObjectByName('pointSphere').visible = e;
+			spotc.add(spotControls,'visible').onChange(function(e){
+				scene.getObjectByName('spotLight').visible = e;
+				scene.getObjectByName('spotSphere').visible = e;
 			});
+
+
+			spotc.add(spotControls,'exponent',0,100).onChange(function(e){
+				scene.getObjectByName('spotLight').exponent = e;
+			});
+			spotc.add(spotControls,'angle',0,2*Math.PI).onChange(function(e){
+				scene.getObjectByName('spotLight').angle = e;
+			});
+			spotc.add(spotControls,'spotLightHelper').onChange(function(e){
+				spotLightHelper.visible = e;
+			});
+			spotc.add(spotControls,'castShadow').onChange(function(e){
+				scene.getObjectByName('spotLight').castShadow = e;
+			});
+
+			spotc.add(spotControls,'target',['plane','cube','sphere']).onChange(function(e){
+				var spot = scene.getObjectByName('spotLight');
+
+				switch(e){
+					case 'plane':
+						spot.target = plane;
+						break;
+					case 'cube':
+						spot.target = cube;
+						break;
+					case 'sphere':
+						spot.target = sphere0;
+						break;
+				}
+			});
+
 		}
 
 		function addControls() {
@@ -153,12 +219,12 @@
 	    }
 	    sphere.position.z = +(R/2 * (Math.sin(phase)));
 	    sphere.position.x = +(R * (Math.cos(phase)));
-	    sphere.position.y = 3;
+	    sphere.position.y = 10;
 
 	    if (invert < 0) {
 	        sphere.position.x = invert * sphere.position.x + 2 * R;
 	    }
-	    point.position.copy(sphere.position)
+	    spot.position.copy(sphere.position)
 		}
 		$(function(){
 			init();
