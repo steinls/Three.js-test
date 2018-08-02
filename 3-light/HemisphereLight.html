@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>半球光(散射光)</title>
+	<style>
+		body{
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var plane;
+		function init(){
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1400);
+			camera.position.set(-30,40,500);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+			renderer.shadowMap.enabled = true;
+		}
+
+		function addObject(){
+			var groundT = new THREE.TextureLoader().load('../img/texture/ground.jpg')
+			groundT.wrapS = THREE.RepeatWrapping;
+			groundT.wrapT = THREE.RepeatWrapping;
+			groundT.repeat.set(4,4);
+
+			var planeG = new THREE.PlaneGeometry(200,200,80,80);
+			var planeM = new THREE.MeshLambertMaterial({map:groundT})
+			plane = new THREE.Mesh(planeG,planeM);
+			plane.position.set(0,0,0);
+			plane.rotation.x = -0.5 * Math.PI;
+			plane.receiveShadow = true;
+			scene.add(plane);
+
+			var cubeG = new THREE.BoxGeometry(8,8,8);
+			var cubeM = new THREE.MeshLambertMaterial({color:'red'});
+			var cube = new THREE.Mesh(cubeG,cubeM);
+			cube.name = 'cube';
+			cube.castShadow = true;
+			cube.position.set(-15,6,0)
+			scene.add(cube);
+
+			var sphereG = new THREE.SphereGeometry(10,20,20);
+			var sphereM = new THREE.MeshLambertMaterial({color:'blue'});
+			var sphere = new THREE.Mesh(sphereG,sphereM);
+			sphere.castShadow = true;
+			sphere.position.set(20,10,0);
+			scene.add(sphere);
+		}
+
+		function addLight(){
+			var hemisphereLight = new THREE.HemisphereLight(0x0000ff,0x00ff00,0.6);
+			hemisphereLight.position.set(0,50,0);
+			hemisphereLight.name = 'hl';
+			scene.add(hemisphereLight);
+
+			var spotLight = new THREE.SpotLight(0xcccccc);
+			spotLight.position.set(-40,150,10);
+			spotLight.lookAt(plane);
+			spotLight.castShadow = true;
+			spotLight.shadow.mapSize.width = 2048;
+			spotLight.shadow.mapSize.height = 2048;
+			spotLight.angle = 1;
+			scene.add(spotLight);
+			
+			var directinalLight = new THREE.DirectionalLight(0xffffff);
+			directinalLight.position.set(30,10,-50);
+			directinalLight.target = plane;
+			directinalLight.shadow.camera.near = 0.1;
+			directinalLight.shadow.camera.far = 200;
+			directinalLight.shadow.camera.left = 50;
+			directinalLight.shadow.camera.top = 50;
+			directinalLight.shadow.camera.right = -50;
+			directinalLight.shadow.camera.bottom = -50;
+			directinalLight.shadow.mapSize.width = 2048;
+			directinalLight.shadow.mapSize.height = 2048;
+			// directinalLight.shadow.camera.fov = 3;
+			// directinalLight.castShadow = true;
+			directinalLight.intensity = 1.5;
+			scene.add(directinalLight);
+
+		}
+
+		function addGui(){
+			var gui = new dat.GUI();
+			var controls = new function(){
+				this.intensity = 1;
+				this.groundColor = 0x00ff00;
+				this.color = 0x0000ff;
+				this.hemisphereLightShow = true;
+			}
+
+			gui.add(controls,'intensity',0,5).onChange(function(v){
+				scene.getObjectByName('hl').intensity = v;
+			});
+			gui.addColor(controls,'groundColor').onChange(function(v){
+				scene.getObjectByName('hl').groundColor = new THREE.Color(v);
+			});
+			gui.addColor(controls,'color').onChange(function(v){
+				scene.getObjectByName('hl').color = new THREE.Color(v);
+			});
+			gui.add(controls,'hemisphereLightShow').onChange(function(v){
+				scene.getObjectByName('hl').visible = v;
+			});
+		}
+
+		function addControls(){
+			var controls = new THREE.OrbitControls(camera,renderer.domElement);
+		}
+
+		function render(){
+			animation()
+			renderer.render(scene,camera);
+			requestAnimationFrame(render);
+		}
+
+		function animation(){
+			if(scene.getObjectByName('cube')){
+				var cube = scene.getObjectByName('cube');
+				cube.rotation.x += 0.04;
+				cube.rotation.y += 0.04;
+				cube.rotation.z += 0.04;
+			}
+		}
+
+
+		init();
+		addObject();
+		addLight();
+
+		addGui();
+		addControls();
+		render();
+	</script>
+</body>
+</html>
