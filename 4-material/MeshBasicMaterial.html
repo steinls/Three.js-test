@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+</head>
+<body>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../init-render.js"></script>
+	<script>
+		function addObject(){
+			var planeG = new THREE.PlaneGeometry(40,40,80,80);
+			var planeM = new THREE.MeshBasicMaterial({color:'green',side:THREE.DoubleSide});
+			var plane = new THREE.Mesh(planeG,planeM);
+			plane.rotation.x = -0.5*Math.PI;
+			scene.add(plane)
+
+			var cubeG = new THREE.BoxGeometry(2,2,2);
+			var cubeM = new THREE.MeshBasicMaterial({color:'red',transparent:true});
+			var cube = new THREE.Mesh(cubeG,cubeM);
+			cube.position.set(0,3,0);
+			cube.name = 'cube';
+			scene.add(cube);
+		}
+
+		function addGUI(){
+			var gui = new dat.GUI();
+			var c = new function(){
+				this.opacity = 1;
+				this.transparent = true;
+				this.wireframe = false;
+			};
+
+			gui.add(c,'opacity',0,1).onChange(function(v){
+				scene.getObjectByName('cube').material.opacity = v;
+			});
+			gui.add(c,'transparent').onChange(function(v){
+				scene.getObjectByName('cube').material.transparent = v;
+			});
+			gui.add(c,'wireframe').onChange(function(v){
+				var cubeM = scene.getObjectByName('cube').material;
+				cubeM.wireframe = v;
+			});
+		}
+
+		function animation(){
+			var cube = scene.getObjectByName('cube');
+			cube.rotation.x += 0.04;
+			cube.rotation.y += 0.04;
+			cube.rotation.z += 0.04;
+		}
+
+		iinit('基础材质',function(){
+			addObject();
+			addGUI();
+		});
+	</script>
+</body>
+</html>
