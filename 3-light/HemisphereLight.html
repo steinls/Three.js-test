@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>半球光(散射光)</title>
+	<title>半球光(散射光)+镜头光晕</title>
 	<style>
 		body{
 			margin: 0;
@@ -17,6 +17,7 @@
 	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs/OrbitControls.js"></script>
 	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/Lensflare.js"></script>
 	<script>
 		var scene,camera,renderer;
 		var plane;
@@ -24,13 +25,17 @@
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1400);
-			camera.position.set(-30,40,500);
+			camera.position.set(-30,40,200);
 			camera.lookAt(scene.position);
 
-			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer = new THREE.WebGLRenderer({
+				canvas:$('canvas')[0]
+			});
 			renderer.setSize(window.innerWidth,window.innerHeight);
 			renderer.setClearColor('gray');
 			renderer.shadowMap.enabled = true;
+			renderer.gammaInput = true;
+			renderer.gammaOutput = true;
 		}
 
 		function addObject(){
@@ -39,7 +44,7 @@
 			groundT.wrapT = THREE.RepeatWrapping;
 			groundT.repeat.set(4,4);
 
-			var planeG = new THREE.PlaneGeometry(200,200,80,80);
+			var planeG = new THREE.PlaneGeometry(600,600,80,80);
 			var planeM = new THREE.MeshLambertMaterial({map:groundT})
 			plane = new THREE.Mesh(planeG,planeM);
 			plane.position.set(0,0,0);
@@ -69,15 +74,16 @@
 			hemisphereLight.name = 'hl';
 			scene.add(hemisphereLight);
 
-			var spotLight = new THREE.SpotLight(0xcccccc);
-			spotLight.position.set(-40,150,10);
-			spotLight.lookAt(plane);
-			spotLight.castShadow = true;
-			spotLight.shadow.mapSize.width = 2048;
-			spotLight.shadow.mapSize.height = 2048;
-			spotLight.angle = 1;
-			scene.add(spotLight);
-			
+
+			var pointLight = new THREE.PointLight(0xffffff);
+			pointLight.position.set(0,40,-160);
+			pointLight.castShadow = true;
+			pointLight.shadow.mapSize.width = 2048;
+			pointLight.shadow.mapSize.height = 2048;
+
+			scene.add(pointLight);
+
+
 			var directinalLight = new THREE.DirectionalLight(0xffffff);
 			directinalLight.position.set(30,10,-50);
 			directinalLight.target = plane;
@@ -93,6 +99,18 @@
 			// directinalLight.castShadow = true;
 			directinalLight.intensity = 1.5;
 			scene.add(directinalLight);
+
+
+      var t1 = new THREE.TextureLoader().load('../img/texture/lensflare0_alpha.png');
+      var t2 = new THREE.TextureLoader().load('../img/texture/lensflare3.png');
+
+      var lensflare = new THREE.Lensflare();
+      lensflare.addElement(new THREE.LensflareElement(t1,350,0,pointLight.color));
+      lensflare.addElement( new THREE.LensflareElement( t2, 60, 0.6 ) );
+    	lensflare.addElement( new THREE.LensflareElement( t2, 70, 0.7 ) );
+    	lensflare.addElement( new THREE.LensflareElement( t2, 120, 0.9 ) );
+    	lensflare.addElement( new THREE.LensflareElement( t2, 70, 1 ) );
+      pointLight.add(lensflare);
 
 		}
 
