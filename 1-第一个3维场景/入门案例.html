@@ -7,6 +7,7 @@
 	<script src="../libs/stats.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
 	<!-- <script src="../libs/AsciiEffect.js"></script> -->
 	<style>
 		#stats-output{
@@ -20,11 +21,15 @@
 	<div id="webgl-output"></div>
 	<div id="stats-output"></div>
 	<script>
-		// init
+		// 初始化变量
+		// 必要组件
 		var scene,camera,renderer;
+
+		// 按需
 		var stats;
 		var angle = 0;
-		var controls,gui;
+		var cont,gui;
+		var controls;
 		// var effect;
 
 		function init() {
@@ -95,7 +100,7 @@
 			// 添加方块
 			// 创建盒子几何体
 			var cubeGeometry = new THREE.BoxGeometry(4,4,4);
-			// 创建兰伯特感光材质，设置颜色0xff0000, 并用线框展示
+			// 创建兰伯特不发光材质，设置颜色0xff0000, 并用线框展示
 			var cubeMaterial = new THREE.MeshLambertMaterial({color:0xff0000,wireframe:true});
 			var cube = new THREE.Mesh(cubeGeometry,cubeMaterial);
 			// 设置方块定位
@@ -136,17 +141,21 @@
 		}
 
 		// 自定义dat.gui控制面板
-		function initControls() {
+		function initGUI() {
 			// 设置要操控的对象
-			controls = new function() {
+			cont = new function() {
 				this.rotationSpeed = 0.02;
 				this.angleSpeed = 0.02;
 			};
 			// 创建gui实例
 			gui = new dat.GUI();
-			// 创建操控controls对象里的rotationSpeed属性的控件，取值范围0到0.5
-			gui.add(controls,'rotationSpeed',0,0.5);
-			gui.add(controls,'angleSpeed',0,0.5);
+			// 创建操控cont对象里的rotationSpeed属性的控件，取值范围0到0.5
+			gui.add(cont,'rotationSpeed',0,0.5);
+			gui.add(cont,'angleSpeed',0,0.5);
+		}
+
+		function initControls(){
+			controls = new THREE.OrbitControls(camera);
 		}
 
 		function render() {
@@ -154,11 +163,11 @@
 			stats.update();
 			// 获取场景内名称为cube的物体
 			// scene.getObjectByName('cube') 
-			scene.getObjectByName('cube').rotation.x += controls.rotationSpeed;
-			scene.getObjectByName('cube').rotation.y += controls.rotationSpeed;
-			scene.getObjectByName('cube').rotation.z += controls.rotationSpeed;
+			scene.getObjectByName('cube').rotation.x += cont.rotationSpeed;
+			scene.getObjectByName('cube').rotation.y += cont.rotationSpeed;
+			scene.getObjectByName('cube').rotation.z += cont.rotationSpeed;
 
-			angle += controls.angleSpeed;
+			angle += cont.angleSpeed;
 			scene.getObjectByName('sphere').position.x = 20 + (10 * (Math.cos(angle)));
 			scene.getObjectByName('sphere').position.y = 2 + (10 * Math.abs((Math.sin(angle))));
 			// HTML5动画api，类似与定时器，
@@ -178,8 +187,11 @@
 			initAxes();
 			initLight();
 			initObject();
-			// 检测与操控
+			// 性能检测
 			initStats();
+			// 控制面板
+			initGUI();
+			//控制器
 			initControls();
 			// 渲染
 			render();

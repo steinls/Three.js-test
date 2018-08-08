@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs-old/three-old.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs-old/OrbitControls.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var control;
+
+		function init(){
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,50);
+			camera.position.set(0,0,10);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setClearColor('gray');
+			renderer.setSize(window.innerWidth,window.innerHeight);
+		}
+
+		function render(){
+			control.update();
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		function addControls(){
+			control = new THREE.OrbitControls(camera);
+		}
+		function addLight(){
+			var pointLight = new THREE.PointLight(0xffffff);
+			pointLight.position.set(-10,10,80);
+			scene.add(pointLight);
+		}
+		function addObject(){
+			var cubeG = new THREE.BoxGeometry(4,4,4);
+			var cubeM = new THREE.MeshDepthMaterial();
+			console.log(cubeM)
+			var cube = new THREE.Mesh(cubeG,cubeM);
+			scene.add(cube);
+		}
+		init();
+		addLight();
+		addObject();
+		addControls();
+		render();
+	</script>
+</body>
+</html>
