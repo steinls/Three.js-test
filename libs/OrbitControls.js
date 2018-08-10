@@ -1,17 +1,17 @@
 /**
- * @author qiao / https://github.com/qiao
- * @author mrdoob / http://mrdoob.com
- * @author alteredq / http://alteredqualia.com/
- * @author WestLangley / http://github.com/WestLangley
- * @author erich666 / http://erichaines.com
+  * @author qiao / https://github.com/qiao
+  * @author mrdoob / http://mrdoob.com
+  * @author changedq / http://alteredqualia.com/
+  * @author WestLangley / http://github.com/WestLangley
+  * @author erich666 / http://erichaines.com
  */
 
-// This set of controls performs orbiting, dollying (zooming), and panning.
-// Unlike TrackballControls, it maintains the "up" direction object.up (+Y by default).
+//这组控制执行轨道运动，玩偶（缩放）和平移。
+//与TrackballControls不同，它维护“up”方向object.up（默认为+ Y）。
 //
-//    Orbit - left mouse / touch: one-finger move
-//    Zoom - middle mouse, or mousewheel / touch: two-finger spread or squish
-//    Pan - right mouse, or arrow keys / touch: two-finger move
+//轨道 - 鼠标左键/触摸：单指移动
+//缩放 - 中间鼠标或鼠标滚轮/触摸：双指展开或挤压
+//平移 - 右键鼠标或箭头键/触摸：双指移动
 
 THREE.OrbitControls = function ( object, domElement ) {
 
@@ -19,79 +19,81 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	this.domElement = ( domElement !== undefined ) ? domElement : document;
 
-	// Set to false to disable this control
+	//设置为false以禁用此控件
 	this.enabled = true;
 
-	// "target" sets the location of focus, where the object orbits around
+	//“target”设置焦点的位置，对象绕轨道运行
 	this.target = new THREE.Vector3();
 
-	// How far you can dolly in and out ( PerspectiveCamera only )
+	//你可以多远进出（仅限透视相机）
 	this.minDistance = 0;
 	this.maxDistance = Infinity;
 
-	// How far you can zoom in and out ( OrthographicCamera only )
+	// 放大和缩小的距离（仅适用于正投影相机）
 	this.minZoom = 0;
 	this.maxZoom = Infinity;
 
-	// How far you can orbit vertically, upper and lower limits.
-	// Range is 0 to Math.PI radians.
-	this.minPolarAngle = 0; // radians
-	this.maxPolarAngle = Math.PI; // radians
+	//你可以在多远的垂直轨道，上限和下限。
+	//范围是0到Math.PI弧度。
+	this.minPolarAngle = 0; // 弧度
+	this.maxPolarAngle = Math.PI; // 弧度
 
-	// How far you can orbit horizontally, upper and lower limits.
-	// If set, must be a sub-interval of the interval [ - Math.PI, Math.PI ].
-	this.minAzimuthAngle = - Infinity; // radians
-	this.maxAzimuthAngle = Infinity; // radians
+	//水平下限和下限运行的距离。
+	//如果设置，则必须是区间[ - Math.PI，Math.PI]的子区间。
+	this.minAzimuthAngle = - Infinity;  // 弧度
+	this.maxAzimuthAngle = Infinity;  // 弧度
 
-	// Set to true to enable damping (inertia)
-	// If damping is enabled, you must call controls.update() in your animation loop
+	//设置为true以启用阻尼（惯性）
+	//如果启用了阻尼，则必须在动画循环中调用controls.update（）
 	this.enableDamping = false;
 	this.dampingFactor = 0.25;
 
-	// This option actually enables dollying in and out; left as "zoom" for backwards compatibility.
-	// Set to false to disable zooming
+	//这个选项实际上允许进出; 左侧为“缩放”以实现向后兼容性。
+	//设置为false以禁用缩放
 	this.enableZoom = true;
 	this.zoomSpeed = 1.0;
 
-	// Set to false to disable rotating
+	//设置为false以禁用旋转
 	this.enableRotate = true;
 	this.rotateSpeed = 1.0;
 
-	// Set to false to disable panning
+	//设置为false以禁用平移
 	this.enablePan = true;
 	this.panSpeed = 1.0;
-	this.screenSpacePanning = false; // if true, pan in screen-space
-	this.keyPanSpeed = 7.0;	// pixels moved per arrow key push
+	this.screenSpacePanning = false; //如果为true，则在屏幕空间中平移
+	this.keyPanSpeed = 7.0;	//按箭头按键移动的像素数
 
-	// Set to true to automatically rotate around the target
-	// If auto-rotate is enabled, you must call controls.update() in your animation loop
+	//设置为true以自动围绕目标旋转
+	//如果启用了自动旋转，则必须在动画循环中调用controls.update（）
 	this.autoRotate = false;
-	this.autoRotateSpeed = 2.0; // 30 seconds per round when fps is 60
+	this.autoRotateSpeed = 2.0; //当fps为60时，每轮30秒
 
-	// Set to false to disable use of the keys
+	//设置为false以禁用密钥的使用
 	this.enableKeys = true;
 
-	// The four arrow keys
+	//四个箭头键
 	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40 };
 
-	// Mouse buttons
+	//鼠标按钮
 	this.mouseButtons = { ORBIT: THREE.MOUSE.LEFT, ZOOM: THREE.MOUSE.MIDDLE, PAN: THREE.MOUSE.RIGHT };
 
-	// for reset
+	//用于重置
 	this.target0 = this.target.clone();
 	this.position0 = this.object.position.clone();
 	this.zoom0 = this.object.zoom;
 
 	//
-	// public methods
+	//公共方法
 	//
 
+	// 获得极地角度
 	this.getPolarAngle = function () {
 
 		return spherical.phi;
 
 	};
 
+	// 获得方位
 	this.getAzimuthalAngle = function () {
 
 		return spherical.theta;

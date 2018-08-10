@@ -12,68 +12,37 @@
 	</style>
 </head>
 <body>
-	<div class="webgl"></div>
+	<canvas></canvas>
 	<script src="../libs/three.js"></script>
-	<script src="../libs/dat.gui.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
 	<script>
 		var scene,camera,renderer;
-		var mesh;
-		var dotCArray;
+		var vertices,vcs;
 		function init() {
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,1000);
-			camera.position.set(-20,25,20);
-			camera.lookAt(new THREE.Vector3(5,0,0));
+			camera.position.set(-12,17,12);
+			camera.lookAt(scene.position);
 
-			renderer = new THREE.WebGLRenderer();
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
 			renderer.setSize(window.innerWidth,window.innerHeight);
 			renderer.setClearColor(0xEEEEEE);
-			renderer.setSize(window.innerWidth,window.innerHeight);
-			renderer.shadowMapEnabled = true;
-			$('.webgl').append(renderer.domElement);
 		}
 		
 		function render() {
-			var vertices = [];
-			for (var i = 0; i < 8; i++) {
-			    vertices.push(new THREE.Vector3(dotCArray[i].x, dotCArray[i].y, dotCArray[i].z));
-			}
-
-			mesh.children.forEach(function (e) {
-			    e.geometry.vertices = vertices;
-			    e.geometry.verticesNeedUpdate = true;
-			    e.geometry.computeFaceNormals();
-			});
-
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
 
-		function initLight() {
-			var spotLight = new THREE.SpotLight(0xffffff);
-			spotLight.position.set(-40,60,10);
-			spotLight.castShadow = true;
-			scene.add(spotLight);
-		}
 
-		function initObject() {
-			var planeGeometry = new THREE.PlaneGeometry(60,40);
-			var planeMaterial = new THREE.MeshLambertMaterial({color:0xffffff});
-			var plane = new THREE.Mesh(planeGeometry,planeMaterial);
-			plane.receiveShadow = true;
-
-			plane.rotation.x = -0.5 * Math.PI;
-			plane.position.set(0,-1,1);
-
-			scene.add(plane);
-
-			var axes = new THREE.AxisHelper(20);
-			scene.add(axes);
-
+		// 重点
+		function addObject() {
 			// 三点片面创建几何体
-			var vertices = [
+			vertices = [
 	            new THREE.Vector3(1, 3, 1),
 	            new THREE.Vector3(1, 3, -1),
 	            new THREE.Vector3(1, -1, 1),
@@ -99,96 +68,89 @@
 				new THREE.Face3(3, 6, 4),
 			];
 
-			var geom = new THREE.Geometry();
-			geom.vertices = vertices;
-			geom.faces = faces;
-			geom.computeFaceNormals();
+			var g = new THREE.Geometry();
+			g.vertices = vertices;
+			g.faces = faces;
+			g.computeFaceNormals();
 
-			var materials = [
-				new THREE.MeshLambertMaterial({opacuty:0.6,color:0x44ff44,transparent:true}),
+			var ms = [
+				new THREE.MeshBasicMaterial({opacity:0.4,color:0x44ff44,transparent:true}),
 				new THREE.MeshBasicMaterial({
 					color:0x000000,wireframe:true
 				})
 			];
 
-			mesh = THREE.SceneUtils.createMultiMaterialObject(geom,materials)
-			mesh.children.forEach(function(e){
-				e.castShadow = true;
-			});
-			console.log(mesh);
+			mesh = THREE.SceneUtils.createMultiMaterialObject(g,ms)
+			mesh.name = 'mesh1';
 			scene.add(mesh);
 		}
 
-		function initControls() {
+		function addGUI(){
 			var gui = new dat.GUI();
-			// 克隆元素
-			var cloneControls = new function(){
-				this.clone = function(){
-					// 克隆材质，因为THREE.SceneUtils.createMultiMaterialObject
-					// 会给每一个材质创建一个mesh，而它们使用的几何体是同一个
-					// 所以我们只要第一个的几何体
-					var clonedGeometry = mesh.children[0].geometry.clone();
-					var materials = [
-						new THREE.MeshLambertMaterial({opacity:0.6,color:0xff44ff,transparent:true}),
-						new THREE.MeshBasicMaterial({color:0x000000,wireframe:true})
-					];
-
-					var mesh2 = THREE.SceneUtils.createMultiMaterialObject(clonedGeometry,materials);
-
-					mesh2.children.forEach(function(e){
-						e.castShadow = true;
-					});
-
-					// 位移
-					mesh2.translateX(5);
-					mesh2.translateZ(5);
-
-					mesh2.name = 'clone';
-					// 移除之前创建的克隆元素
-					scene.remove(scene.getObjectByName('clone'));
+			var cont = new function(){
+				this.copy = function(){
+					var obj = scene.getObjectByName('mesh1');
 					
-					scene.add(mesh2);
-				}
-			};
-			gui.add(cloneControls,'clone');
-
-
-
-			// 调整点
-			function dotControls(x,y,z) {
-				this.x = x;
-				this.y = y;
-				this.z = z;
+					var g = obj.children[0].geometry.clone();
+					var ms = [
+						new THREE.MeshBasicMaterial({color:'red',opacity:0.4,transparent:true}),
+						new THREE.MeshBasicMaterial({color:'blue',wireframe:true})
+					];
+					var mesh = THREE.SceneUtils.createMultiMaterialObject(g,ms);
+					
+					mesh.name = 'clone';
+					mesh.translateX(5);
+					mesh.translateZ(5);
+					scene.remove(scene.getObjectByName('clone'))
+					scene.add(mesh);
+				};
 			}
+			// copy
+			gui.add(cont,'copy');
 
-
-			dotCArray = [
-				new dotControls(1, 3, 1),
-				new dotControls(1, 3, -1),
-				new dotControls(1, -1, 1),
-				new dotControls(1, -1, -1),
-				new dotControls(-1, 3, -1),
-				new dotControls(-1, 3, 1),
-				new dotControls(-1, -1, -1),
-				new dotControls(-1, -1, 1)
-			];
-
-
-			for (var i = 0; i < 8; i++) {
-			    f1 = gui.addFolder('Vertices ' + (i + 1));
-			    f1.add(dotCArray[i], 'x', -10, 10);
-			    f1.add(dotCArray[i], 'y', -10, 10);
-			    f1.add(dotCArray[i], 'z', -10, 10);
+			function Controls(obj){
+				this.x = obj.x;
+				this.y = obj.y;
+				this.z = obj.z;
 			}
+			vcs = [];
+			vertices.forEach(function(v,k){
+				cont2 = new Controls(v);
+				vcs.push(cont2);
+				var spot = gui.addFolder('spot'+k);
+				spot.add(cont2,'x',-10,10).onChange(function(e){
+					scene.getObjectByName('mesh1').children
+					.forEach(function(v){
+						v.geometry.vertices[k].x = e;
+                		v.geometry.verticesNeedUpdate = true;
+						v.geometry.computeFaceNormals();
+					})
+				});
+				spot.add(cont2,'y',-10,10).onChange(function(e){
+					scene.getObjectByName('mesh1').children
+					.forEach(function(v){
+						v.geometry.vertices[k].y = e;
+                		v.geometry.verticesNeedUpdate = true;
+						v.geometry.computeFaceNormals();
+					})
+				});
+				spot.add(cont2,'z',-10,10).onChange(function(e){
+					scene.getObjectByName('mesh1').children
+					.forEach(function(v){
+						v.geometry.vertices[k].z = e;
+                		v.geometry.verticesNeedUpdate = true;
+						v.geometry.computeFaceNormals();
+					})
+				});
+			});
 		}
 
-		onload = function() {
-			init();
-			initObject();
-			initLight();
-			initControls();
-			render();
-		}
+		init();
+		addObject();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+		addGUI();
+
 	</script>
 </body>
 </html>

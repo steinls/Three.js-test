@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>法向量颜色材质</title>
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs-old/three-old.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs-old/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var controls;
+		function init(){
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,70);
+			camera.position.set(0,0,40);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render(){
+			controls.update();
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject(){
+			var sphereG = new THREE.SphereGeometry(6,20,20);
+			var sphereM1 = new THREE.MeshNormalMaterial({color: 0x7777ff,side:THREE.DoubleSide});
+			var sphereM2 = new THREE.MeshBasicMaterial({color: 0x000000,wireframe:true});
+			var sphere = new THREE.SceneUtils.createMultiMaterialObject(sphereG,[sphereM1,sphereM2]);
+			sphere.name = 'sp';
+			scene.add(sphere);
+		}
+
+		function addArrow(){
+			var sphereG = scene.getObjectByName('sp').children[0].geometry;
+			sphereG.faces.forEach(function(v,k){
+				// 计算三角片面的中心点
+				var centroid = new THREE.Vector3(0,0,0);
+				centroid.add(sphereG.vertices[v.a]);
+				centroid.add(sphereG.vertices[v.b]);
+				centroid.add(sphereG.vertices[v.c]);
+				centroid.divideScalar(3);
+
+				// 创建箭头
+				// 参数：
+				// 方向，箭头起始点，长度，颜色，箭头宽，箭头高
+				var arrow = new THREE.ArrowHelper(v.normal,centroid,2,0x000000,0.2,0.2);
+				arrow.name = 'arrow';
+				scene.add(arrow);
+			});
+		}
+
+		function addGUI(){
+			var gui = new dat.GUI();
+			var control = new function(){
+				this.shading = 'Flat';
+				this.arrow = true;
+				this.wireframe = true;
+			}
+			gui
+			.add(control,'shading',['Flat','Smooth'])
+			.onChange(function(e){
+				var sphere = scene.getObjectByName('sp');
+				var g = sphere.children[0].geometry.clone();
+				var ms = [
+					sphere.children[0].material.clone(),
+					sphere.children[1].material.clone()
+				];
+				switch(e){
+					case 'Smooth':
+						ms[0].shading = THREE.SmoothShading;
+						break;
+					
+					case 'Flat':
+						ms[0].shading = THREE.FlatShading;
+						break;
+				}
+				var mesh = new THREE.SceneUtils.createMultiMaterialObject(g,ms);
+				mesh.name = 'sp';
+				scene.remove(sphere);
+				scene.add(mesh);
+			});
+
+			gui
+			.add(control,'arrow')
+			.onChange(function(e){
+				var sphere = scene.getObjectByName('sp');
+				scene.traverse(function(child){
+					if(child.name == 'arrow'){
+						child.visible = e;
+					}
+				});
+			});
+
+			gui
+			.add(control,'wireframe')
+			.onChange(function(e){
+				var sphereM = scene.getObjectByName('sp').children[1].material;
+				sphereM.visible = e;
+			});
+		}
+
+		init();
+		addObject();
+		addArrow();
+		addGUI();
+		controls = new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>

@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title></title>
+	<title>联合深度材质特性和基础材质颜色</title>
 	<style>
 		body{
-			margin:0;
+			margin: 0;
 			padding: 0;
 			overflow: hidden;
 		}
@@ -20,13 +20,19 @@
 <body>
 	<p>请使用鼠标滚轮测试</p>
 	<canvas></canvas>
+	<!-- 
+		使用老版本的控制器和three.js
+		原因：
+		一，因为老版本three.js不支持新版控制器 
+		二，新版three.js深度材质不支持或者语法变了，暂时没找到方法
+	-->
 	<script src="../libs-old/three-old.js"></script>
-	<script src="../libs/jquery.2.2.2.js"></script>
 	<script src="../libs-old/OrbitControls.js"></script>
+
+	<script src="../libs/jquery.2.2.2.js"></script>
 	<script>
 		var scene,camera,renderer;
-		var control;
-
+		var controls;
 		function init(){
 			scene = new THREE.Scene();
 
@@ -40,29 +46,34 @@
 		}
 
 		function render(){
-			control.update();
+			controls.update();
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
-		function addControls(){
-			control = new THREE.OrbitControls(camera);
-		}
-		function addLight(){
-			var pointLight = new THREE.PointLight(0xffffff);
-			pointLight.position.set(-10,10,80);
-			scene.add(pointLight);
-		}
+
 		function addObject(){
 			var cubeG = new THREE.BoxGeometry(4,4,4);
-			var cubeM = new THREE.MeshDepthMaterial();
-			console.log(cubeM)
-			var cube = new THREE.Mesh(cubeG,cubeM);
-			scene.add(cube);
+
+			// 深度材质
+			var cubeM1 = new THREE.MeshDepthMaterial();
+			// 基础材质
+			var cubeM2 = new THREE.MeshBasicMaterial({
+				color:'yellow',
+				transparent:true,
+				blending:THREE.MultiplyBlending
+			});
+			// 创建多材质几何
+			// 我们这次联合材质是为了获取
+			// 深度材质的特性和基础材质的颜色
+			var M = new THREE.SceneUtils.createMultiMaterialObject(cubeG,[cubeM1,cubeM2]);
+
+			scene.add(M)
+
 		}
+
 		init();
-		addLight();
 		addObject();
-		addControls();
+		controls = new THREE.OrbitControls(camera);
 		render();
 	</script>
 </body>
