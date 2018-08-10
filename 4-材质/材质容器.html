@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>材质容器</title>
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		function init(){
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,100);
+
+			camera.position.set(-30,40,30);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+		}
+
+		function render(){
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject(){
+			var faceMs = [];
+			faceMs.push(new THREE.MeshBasicMaterial({color:'red'}));
+			faceMs.push(new THREE.MeshBasicMaterial({color:'yellow'}));
+			faceMs.push(new THREE.MeshBasicMaterial({color:'blue'}));
+			faceMs.push(new THREE.MeshBasicMaterial({color:'green'}));
+			faceMs.push(new THREE.MeshBasicMaterial({color:'pink'}));
+			faceMs.push(new THREE.MeshBasicMaterial({color:'gray'}));
+		
+			var g = new THREE.BoxGeometry(4,4,4);
+			var m = new THREE.MeshFaceMaterial(faceMs);
+
+			var mesh = new THREE.Mesh(g,m);
+
+			scene.add(mesh);
+		}
+		init();
+		addObject();
+		new THREE.OrbitControls(camera);
+		render();
+	</script>
+</body>
+</html>
