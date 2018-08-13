@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>线段材质</title>
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var lineG;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(-30,40,30);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject() {
+			var lineG = new THREE.Geometry();
+			lineG.vertices = [
+				new THREE.Vector3(10,10,0),
+				new THREE.Vector3(0,10,0),
+				new THREE.Vector3(10,0,0),
+				new THREE.Vector3(4,3,0),
+				new THREE.Vector3(0,0,0)
+			];
+			lineG.colors = [
+				new THREE.Color('red'),
+				new THREE.Color('yellow'),
+				new THREE.Color('back'),
+				new THREE.Color('blue'),
+				new THREE.Color('green')
+			];
+
+			var BasicLineM = new THREE.LineBasicMaterial({
+				opacity:1,
+				linewidth:2,
+				vertexColors:true
+			});
+
+			var basicLine =  new THREE.Line(lineG,BasicLineM);
+			basicLine.name = "basicLine";
+			basicLine.visible = true;
+			basicLine.position.set(0,0,0);
+			scene.add(basicLine);
+
+
+			var dasheLineM = new THREE.LineDashedMaterial({
+				opacity:1,
+				linewidth:2,
+				vertexColors:true,
+				scale:1,
+				gapSize:2,
+				dashSize:2
+				// color:'red'
+			});
+
+			var dasheLine =  new THREE.Line(lineG,dasheLineM);
+			dasheLine.computeLineDistances();
+			dasheLine.name = "dasheLine";
+			dasheLine.visible = false;
+			dasheLine.position.set(0,0,0);
+			scene.add(dasheLine);
+		}
+
+		function addGUI() {
+			var gui = new dat.GUI();
+			var cont = new function () {
+				this.turnMaterial = 'LineBasicMesh';
+			}
+			var c = gui.add(cont,'turnMaterial',[
+				'LineBasicMesh',
+				'LineDashedMesh'
+			]);
+			c.onChange(function (e) {
+				var bl = scene.getObjectByName('basicLine');
+				var dl = scene.getObjectByName('dasheLine');
+				switch(e){
+					case 'LineBasicMesh':
+						bl.visible = true;
+						dl.visible = false;
+						break;
+					case 'LineDashedMesh':
+						dl.visible = true;
+						bl.visible = false;
+						break;	
+				}
+			});
+		}
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>
