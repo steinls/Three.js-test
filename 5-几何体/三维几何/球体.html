@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>球体</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script src="../../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			var sphere = new THREE.SphereGeometry(3,8,8);
+			scene.add(createMesh(sphere,'sphere'));
+		}
+
+		function createMesh(geo,name) {
+			// 宽，高，深度，宽分段，高分段，深度分段
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function addGUI() {
+			var sphere = scene.getObjectByName('sphere');
+			var p = sphere.children[0].geometry.parameters;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.radius = p.radius;
+
+				this.widthSegments = p.widthSegments;
+				this.heightSegments = p.heightSegments;
+
+				this.phiStart = 0;
+				this.phiLength = 2*Math.PI;
+				this.thetaStart = 0;
+				this.thetaLength = 2*Math.PI;
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName('sphere'));
+
+					var sphereG = new THREE.SphereGeometry(
+							cont.radius,
+							cont.widthSegments,
+							cont.heightSegments,
+
+							cont.phiStart,
+							cont.phiLength,
+							cont.thetaStart,
+							cont.thetaLength
+						);
+					scene.add(createMesh(sphereG,'sphere'));
+				}
+			}
+
+			gui.add(cont,'radius',0,20).onChange(cont.redraw);
+			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'phiStart',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'phiLength',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'thetaStart',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'thetaLength',0,2*Math.PI).onChange(cont.redraw);
+		}
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>
