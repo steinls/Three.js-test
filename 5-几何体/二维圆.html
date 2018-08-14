@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>二维圆</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject() {
+			var circleG = new THREE.CircleGeometry(10,10,0,2*Math.PI);
+			var circleM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
+			var circleM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
+			var circle = new THREE.SceneUtils.createMultiMaterialObject(circleG,[circleM1,circleM2]);
+			circle.name = 'circle';
+			scene.add(circle);
+		}
+
+		function addGUI() {
+			var circle = scene.getObjectByName('circle');
+			var parameters = circle.children[0].geometry.parameters;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.radius = parameters.radius;
+				this.segments = parameters.segments;
+				this.thetaStart = parameters.thetaStart;
+				this.thetaLength = parameters.thetaLength;
+				this.redraw = function () {
+					var circle = scene.getObjectByName('circle');
+					scene.remove(circle);
+					var circleG = new THREE.CircleGeometry(cont.radius,Math.floor(cont.segments),cont.thetaStart,cont.thetaLength);
+					var circleM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
+					var circleM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
+					var circle = new THREE.SceneUtils.createMultiMaterialObject(circleG,[circleM1,circleM2]);
+					circle.name = 'circle';
+					scene.add(circle);
+				}
+			}
+
+			gui.add(cont,'radius',0,20).onChange(cont.redraw);
+			gui.add(cont,'segments',0,20).onChange(cont.redraw);
+			gui.add(cont,'thetaStart',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'thetaLength',0,2*Math.PI).onChange(cont.redraw);
+
+		}
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera);
+		render();
+	</script>
+</body>
+</html>

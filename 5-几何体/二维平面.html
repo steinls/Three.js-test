@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>平面</title>
+	<style>
+		body{
+			margin:0;
+			padding: 0;
+			overflow: hidden;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont,run = true,step = 0;
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(-30,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor(0x000000);
+		}
+
+		function render() {
+			if(run){
+				scene.getObjectByName('plane').rotation.y = step +=0.03;
+			}
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addObject() {
+			var planeG = new THREE.PlaneGeometry(20,20,6,6);
+			var planeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
+			var planeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
+			var plane = new THREE.SceneUtils.createMultiMaterialObject(planeG,[planeM1,planeM2]);
+			plane.name = 'plane';
+			scene.add(plane);
+		}
+
+		function addGUI() {
+			var plane = scene.getObjectByName('plane');
+			var planeG = plane.children[0].geometry;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.width = planeG.parameters.width;
+				this.height = planeG.parameters.height;
+				this.heightSegments = planeG.parameters.heightSegments;
+				this.widthSegments = planeG.parameters.widthSegments;
+				this.redraw = function () {
+					var plane = scene.getObjectByName('plane');
+					scene.remove(plane);
+
+					var planeG = new THREE.PlaneGeometry(cont.width,cont.height,cont.heightSegments,cont.widthSegments);
+					var planeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
+					var planeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
+					var plane = new THREE.SceneUtils.createMultiMaterialObject(planeG,[planeM1,planeM2]);
+					plane.name = 'plane';
+					scene.add(plane);
+				}
+			}
+
+			gui.add(cont,'width',0,40).onChange(cont.redraw);
+			gui.add(cont,'height',0,40).onChange(cont.redraw);
+			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
+
+		}
+
+
+		init();
+		addObject();
+		addGUI();
+
+		var controls = new THREE.OrbitControls(camera,renderer.domElement);
+		$('canvas').on( 'mousedown', (event)=>{ 
+			run = false;
+		} )
+		$('canvas').on( 'mouseup', (event)=>{ 
+			run = true;
+		} )
+
+		render();
+	</script>
+</body>
+</html>
