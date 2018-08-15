@@ -20,7 +20,11 @@
 	<script src="../../libs/dat.gui.js"></script>
 	<script>
 		var scene,camera,renderer;
-		var cont,run = true,step = 0;
+		var cont;
+		var instanceObj = {
+			name:'plane',
+			geometry:'PlaneGeometry'
+		};
 		function init() {
 			scene = new THREE.Scene();
 
@@ -34,20 +38,25 @@
 		}
 
 		function render() {
-			if(run){
-				scene.getObjectByName('plane').rotation.y = step +=0.03;
-			}
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
 
 		function addObject() {
-			var planeG = new THREE.PlaneGeometry(20,20,6,6);
-			var planeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-			var planeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-			var plane = new THREE.SceneUtils.createMultiMaterialObject(planeG,[planeM1,planeM2]);
-			plane.name = 'plane';
-			scene.add(plane);
+			// 宽，高，宽分段，高分段
+			var instance = new THREE[instanceObj.geometry](10,10,4,4);
+			scene.add(createMesh(instance,instanceObj.name));
+		}
+
+		function createMesh(geo,name) {
+			// 宽，高，深度，宽分段，高分段，深度分段
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
 		}
 
 		function addGUI() {
@@ -60,15 +69,15 @@
 				this.heightSegments = planeG.parameters.heightSegments;
 				this.widthSegments = planeG.parameters.widthSegments;
 				this.redraw = function () {
-					var plane = scene.getObjectByName('plane');
-					scene.remove(plane);
+					scene.remove(scene.getObjectByName(instanceObj.name));
 
-					var planeG = new THREE.PlaneGeometry(cont.width,cont.height,cont.heightSegments,cont.widthSegments);
-					var planeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-					var planeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-					var plane = new THREE.SceneUtils.createMultiMaterialObject(planeG,[planeM1,planeM2]);
-					plane.name = 'plane';
-					scene.add(plane);
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					cont.width,
+		 					cont.height,
+		 					cont.heightSegments|0,
+		 					cont.widthSegments|0
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
@@ -83,15 +92,7 @@
 		init();
 		addObject();
 		addGUI();
-
 		var controls = new THREE.OrbitControls(camera,renderer.domElement);
-		$('canvas').on( 'mousedown', (event)=>{ 
-			run = false;
-		} )
-		$('canvas').on( 'mouseup', (event)=>{ 
-			run = true;
-		} )
-
 		render();
 	</script>
 </body>

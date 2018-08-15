@@ -20,6 +20,11 @@
 	<script src="../../libs/SceneUtils.js"></script>
 	<script>
 		var scene,camera,renderer;
+		var cont;
+		var instanceObj = {
+			name:'cube',
+			geometry:'CubeGeometry'
+		};
 
 		function init() {
 			scene = new THREE.Scene();
@@ -40,19 +45,26 @@
 		
 		function addObject() {
 			// 宽，高，深度，宽分段，高分段，深度分段
-			var cubeG = new THREE.CubeGeometry(10,10,10,2,2,2);
- 			var cubeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
- 			var cubeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
- 			var cube = new THREE.SceneUtils.createMultiMaterialObject(cubeG,[cubeM1,cubeM2]);
- 			cube.name = 'cube';
- 			scene.add(cube);
+			var instance = new THREE[instanceObj.geometry](10,10,10,2,2,2);
+			scene.add(createMesh(instance,instanceObj.name));
+		}
+
+		function createMesh(geo,name) {
+			// 宽，高，深度，宽分段，高分段，深度分段
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
 		}
 
 		function addGUI() {
-			var cube = scene.getObjectByName('cube');
-			var p = cube.children[0].geometry.parameters;
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters;
 			var gui = new dat.GUI();
-			var cont = new function () {
+			cont = new function () {
 				this.width = p.width;
 				this.height = p.height;
 				this.depth = p.depth;
@@ -61,20 +73,23 @@
 				this.heightSegments = p.heightSegments;
 				this.depthSegments = p.depthSegments;
 				this.redraw = function () {
-					scene.remove(scene.getObjectByName('cube'));
+					scene.remove(scene.getObjectByName(instanceObj.name));
 
-					var cubeG = new THREE.CubeGeometry(cont.width,cont.height,cont.depth,cont.widthSegments,cont.heightSegments,cont.depthSegments);
-		 			var cubeM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-		 			var cubeM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-		 			var cube = new THREE.SceneUtils.createMultiMaterialObject(cubeG,[cubeM1,cubeM2]);
-		 			cube.name = 'cube';
-		 			scene.add(cube);
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					cont.width,
+		 					cont.height,
+		 					cont.depth,
+		 					cont.widthSegments,
+		 					cont.heightSegments,
+		 					cont.depthSegments
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'width',0,20).onChange(cont.redraw);
-			gui.add(cont,'height',0,20).onChange(cont.redraw);
-			gui.add(cont,'depth',0,20).onChange(cont.redraw);
+			gui.add(cont,'width',0,30).onChange(cont.redraw);
+			gui.add(cont,'height',0,30).onChange(cont.redraw);
+			gui.add(cont,'depth',0,30).onChange(cont.redraw);
 			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
 			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
 			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
@@ -84,7 +99,7 @@
 		init();
 		addObject();
 		addGUI();
-		new THREE.OrbitControls(camera);
+		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>
 </body>

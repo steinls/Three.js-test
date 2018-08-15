@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>球体</title>
+	<title>圆环</title>
 	<style>
 		body{
 			overflow: hidden;
@@ -22,8 +22,8 @@
 		var scene,camera,renderer;
 		var cont;
 		var instanceObj = {
-			name:'cube',
-			geometry:'SphereGeometry'
+			name:'torus',
+			geometry:'TorusGeometry'
 		};
 
 		function init() {
@@ -44,10 +44,8 @@
 		}
 		
 		function addObject() {
-			// 半径，横向分段，纵向分段，横向起始位置，横向终点位置，纵向起始位置，纵向终点位置
-			// 横向 不绘制：0，整球：2*Math.PI
-			// 纵向 不绘制：0，整球：Math.PI
-			var instance = new THREE[instanceObj.geometry](7,10,10);
+			// 圆环所占范围，圆环的圆半径，圆环的圆分段，圆环的长度分段，圆环的长度
+			var instance = new THREE[instanceObj.geometry](14,4,8,8,2*Math.PI);
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -67,38 +65,29 @@
 			var gui = new dat.GUI();
 			cont = new function () {
 				this.radius = p.radius;
-
-				this.widthSegments = p.widthSegments;
-				this.heightSegments = p.heightSegments;
-
-				this.phiStart = 0;
-				this.phiLength = 2*Math.PI;
-				this.thetaStart = 0;
-				this.thetaLength = Math.PI;
+				this.tube = p.tube;
+				this.radialSegments = p.radialSegments;
+				this.tubularSegments = p.tubularSegments;
+				this.arc = p.arc;
+				
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
-
 					var instanceG = new THREE[instanceObj.geometry](
 							cont.radius,
-							cont.widthSegments,
-							cont.heightSegments,
-
-							cont.phiStart,
-							cont.phiLength,
-							cont.thetaStart,
-							cont.thetaLength
+							cont.tube,
+							cont.radialSegments|0,
+							cont.tubularSegments|0,
+							cont.arc
 						);
 					scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'radius',0,20).onChange(cont.redraw);
-			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'phiStart',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'phiLength',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'thetaStart',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'thetaLength',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'radius',0,30).onChange(cont.redraw);
+			gui.add(cont,'tube',0,8).onChange(cont.redraw);
+			gui.add(cont,'radialSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'tubularSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'arc',0,2*Math.PI).onChange(cont.redraw);
 		}
 
 		init();

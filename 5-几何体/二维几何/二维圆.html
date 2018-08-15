@@ -21,6 +21,10 @@
 	<script>
 		var scene,camera,renderer;
 		var cont;
+		var instanceObj = {
+			name:'circle',
+			geometry:'CircleGeometry'
+		};
 
 		function init() {
 			scene = new THREE.Scene();
@@ -40,12 +44,19 @@
 		}
 
 		function addObject() {
-			var circleG = new THREE.CircleGeometry(10,10,0,2*Math.PI);
-			var circleM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-			var circleM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-			var circle = new THREE.SceneUtils.createMultiMaterialObject(circleG,[circleM1,circleM2]);
-			circle.name = 'circle';
-			scene.add(circle);
+			// 半径，分段，起始绘制，终点绘制
+			var instance = new THREE[instanceObj.geometry](10,10,0,2*Math.PI);
+			scene.add(createMesh(instance,instanceObj.name));
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
 		}
 
 		function addGUI() {
@@ -58,14 +69,15 @@
 				this.thetaStart = parameters.thetaStart;
 				this.thetaLength = parameters.thetaLength;
 				this.redraw = function () {
-					var circle = scene.getObjectByName('circle');
-					scene.remove(circle);
-					var circleG = new THREE.CircleGeometry(cont.radius,Math.floor(cont.segments),cont.thetaStart,cont.thetaLength);
-					var circleM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-					var circleM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-					var circle = new THREE.SceneUtils.createMultiMaterialObject(circleG,[circleM1,circleM2]);
-					circle.name = 'circle';
-					scene.add(circle);
+					scene.remove(scene.getObjectByName(instanceObj.name));
+
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					cont.radius,
+		 					cont.segments|0,
+		 					cont.thetaStart,
+		 					cont.thetaLength
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
@@ -79,7 +91,7 @@
 		init();
 		addObject();
 		addGUI();
-		new THREE.OrbitControls(camera);
+		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>
 </body>

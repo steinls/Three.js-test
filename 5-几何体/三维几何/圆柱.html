@@ -22,8 +22,8 @@
 		var scene,camera,renderer;
 		var cont;
 		var instanceObj = {
-			name:'cube',
-			geometry:'SphereGeometry'
+			name:'cylinder',
+			geometry:'CylinderGeometry'
 		};
 
 		function init() {
@@ -44,10 +44,8 @@
 		}
 		
 		function addObject() {
-			// 半径，横向分段，纵向分段，横向起始位置，横向终点位置，纵向起始位置，纵向终点位置
-			// 横向 不绘制：0，整球：2*Math.PI
-			// 纵向 不绘制：0，整球：Math.PI
-			var instance = new THREE[instanceObj.geometry](7,10,10);
+			// 顶部半径，底部半径，高度，圆分段，高分段，是否不封闭顶部和底部
+			var instance = new THREE[instanceObj.geometry](10,10,5,8,1,false);
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -64,41 +62,36 @@
 		function addGUI() {
 			var instance = scene.getObjectByName(instanceObj.name);
 			var p = instance.children[0].geometry.parameters;
+			console.log(p)
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.radius = p.radius;
-
-				this.widthSegments = p.widthSegments;
+				this.radiusTop = p.radiusTop;
+				this.radiusBottom = p.radiusBottom;
+				this.height = p.height;
 				this.heightSegments = p.heightSegments;
-
-				this.phiStart = 0;
-				this.phiLength = 2*Math.PI;
-				this.thetaStart = 0;
-				this.thetaLength = Math.PI;
+				this.radialSegments = p.radialSegments;
+				this.openEnded = p.openEnded;
+				
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
-
 					var instanceG = new THREE[instanceObj.geometry](
-							cont.radius,
-							cont.widthSegments,
-							cont.heightSegments,
-
-							cont.phiStart,
-							cont.phiLength,
-							cont.thetaStart,
-							cont.thetaLength
+							cont.radiusTop,
+							cont.radiusBottom,
+							cont.height,
+							cont.radialSegments|0,
+							cont.heightSegments|0,
+							cont.openEnded
 						);
 					scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'radius',0,20).onChange(cont.redraw);
-			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'radiusTop',-20,20).onChange(cont.redraw);
+			gui.add(cont,'radiusBottom',-20,20).onChange(cont.redraw);
+			gui.add(cont,'height',0,20).onChange(cont.redraw);
 			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'phiStart',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'phiLength',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'thetaStart',0,2*Math.PI).onChange(cont.redraw);
-			gui.add(cont,'thetaLength',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'radialSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'openEnded').onChange(cont.redraw);
 		}
 
 		init();
