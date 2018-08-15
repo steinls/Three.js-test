@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>环面扭结</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script src="../../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont;
+		var instanceObj = {
+			name:'torusKnot',
+			geometry:'TorusKnotGeometry'
+		};
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,70);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			// 圆环所占范围，圆环的圆半径，圆环的圆分段，圆环的长度分段
+			// 结的类型，结的类型
+			var instance = new THREE[instanceObj.geometry](14,2,16,30,2,3);
+			scene.add(createMesh(instance,instanceObj.name));
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function addGUI() {
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.radius = p.radius;
+				this.tube = p.tube;
+				this.radialSegments = p.radialSegments;
+				this.tubularSegments = p.tubularSegments;
+				this.p = p.p;
+				this.q = p.q;
+
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName(instanceObj.name));
+					var instanceG = new THREE[instanceObj.geometry](
+							cont.radius,
+							cont.tube,
+							cont.radialSegments|0,
+							cont.tubularSegments|0,
+							cont.p,
+							cont.q
+						);
+					scene.add(createMesh(instanceG,instanceObj.name));
+				}
+			}
+
+			gui.add(cont,'radius',0,30).onChange(cont.redraw);
+			gui.add(cont,'tube',0,6).onChange(cont.redraw);
+			gui.add(cont,'radialSegments',0,80).onChange(cont.redraw);
+			gui.add(cont,'tubularSegments',0,80).onChange(cont.redraw);
+			gui.add(cont,'p',0,20).onChange(cont.redraw);
+			gui.add(cont,'q',0,20).onChange(cont.redraw);
+		}
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>
