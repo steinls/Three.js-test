@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>4-8-20面体</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script src="../../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var controls; 
+		var cont;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			createIcosahedron(10,0);
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			M1.opacity = 0.4;
+ 			M1.transparent = true;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function createIcosahedron(radius,detail) {
+			var IcosahedronG = new THREE.IcosahedronGeometry(radius,detail|0);
+			scene.add(createMesh(IcosahedronG,'icosahedron'));
+		}
+
+		function createTetrahedron(radius,detail) {
+			var TetrahedronG = new THREE.TetrahedronGeometry(radius,detail|0);
+			scene.add(createMesh(TetrahedronG,'tetrahedron'));
+		}
+
+		function createOctahedron(radius,detail) {
+			var OctahedronG = new THREE.OctahedronGeometry(radius,detail|0);
+			scene.add(createMesh(OctahedronG,'octahedron'));
+		}
+
+		function addGUI() {
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.name = 'icosahedron';
+
+				this.redraw = function (e) {
+					controls.reset();
+					scene.traverse(function(e){
+						if(e.type !== 'Mesh'){
+							scene.remove(e);
+						}
+					});
+					switch(e){
+						case 'icosahedron':
+							createIcosahedron(10,0);
+							break;
+						case 'tetrahedron':
+							createTetrahedron(10,0);
+							break;
+						case 'octahedron':
+							createOctahedron(10,0);;
+							break;
+					}
+				}
+			}
+
+			gui.add(cont,'name',['icosahedron','tetrahedron','octahedron']).onChange(cont.redraw);
+		}
+
+		init();
+		addObject();
+		addGUI();
+		controls = new THREE.OrbitControls(camera,renderer.domElement);
+		controls.saveState();
+		render();
+	</script>
+</body>
+</html>
