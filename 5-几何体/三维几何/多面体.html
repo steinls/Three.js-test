@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>球体</title>
+	<title>多面体</title>
 	<style>
 		body{
 			overflow: hidden;
@@ -21,16 +21,17 @@
 	<script>
 		var scene,camera,renderer;
 		var cont;
+		var vertices,faces;
 		var instanceObj = {
-			name:'cylinder',
-			geometry:'CylinderGeometry'
+			name:'polyhedron',
+			geometry:'PolyhedronGeometry'
 		};
 
 		function init() {
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
-			camera.position.set(0,0,70);
+			camera.position.set(-30,40,80);
 			camera.lookAt(scene.position);
 
 			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
@@ -44,8 +45,24 @@
 		}
 		
 		function addObject() {
-			// 顶部半径，底部半径，高度，圆分段，高分段，是否不封闭顶部和底部
-			var instance = new THREE[instanceObj.geometry](10,10,5,8,1,false);
+			// 正方体点集合
+			vertices = [
+			    -1,-1,-1,    1,-1,-1,    1, 1,-1,    -1, 1,-1,
+			    -1,-1, 1,    1,-1, 1,    1, 1, 1,    -1, 1, 1,
+			];
+
+			// 正方体面集合
+			faces = [
+			    2,1,0,    0,3,2,
+			    0,4,7,    7,3,0,
+			    0,1,5,    5,4,0,
+			    1,2,6,    6,5,1,
+			    2,3,7,    7,6,2,
+			    4,5,6,    6,7,4
+			];
+
+			// 点集合，面集合，大小，额外细节（分为n个三角形）
+			var instance = new THREE[instanceObj.geometry]( vertices, faces, 6, 0 );
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -65,33 +82,24 @@
 			console.log(p)
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.radiusTop = p.radiusTop;
-				this.radiusBottom = p.radiusBottom;
-				this.height = p.height;
-				this.heightSegments = p.heightSegments;
-				this.radialSegments = p.radialSegments;
-				this.openEnded = p.openEnded;
-				
+				this.radius = p.radius;
+				this.detail = p.detail;
+
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
-					var instanceG = new THREE[instanceObj.geometry](
-							cont.radiusTop|0,
-							cont.radiusBottom|0,
-							cont.height,
-							cont.radialSegments|0,
-							cont.heightSegments|0,
-							cont.openEnded
-						);
-					scene.add(createMesh(instanceG,instanceObj.name));
+
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					vertices, 
+		 					faces, 
+		 					cont.radius|0, 
+		 					cont.detail|0
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'radiusTop',-20,20).onChange(cont.redraw);
-			gui.add(cont,'radiusBottom',-20,20).onChange(cont.redraw);
-			gui.add(cont,'height',0,20).onChange(cont.redraw);
-			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'radialSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'openEnded').onChange(cont.redraw);
+			gui.add(cont,'radius',0,30).onChange(cont.redraw);
+			gui.add(cont,'detail',0,4).onChange(cont.redraw);
 		}
 
 		init();
