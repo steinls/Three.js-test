@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>4-8-20面体</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script src="../libs/QuickHull.js"></script>
+	<script src="../libs/ConvexGeometry.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var controls; 
+		var cont;
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			createConvex();
+			// scene.add(getPoint());
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			M1.opacity = 0.4;
+ 			M1.transparent = true;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		// 创建多面体并加入场景
+		function createConvex() {
+			// 绘制凸面体
+			var points = [];
+
+			for(var i=0;i<20;i++){
+				var x = -15+Math.random()*30;
+				var y = -15+Math.random()*30;
+				var z = -15+Math.random()*30;
+				points.push(new THREE.Vector3(x,y,z));
+			}
+
+			var convexG = new THREE.ConvexGeometry(points);
+			scene.add(createMesh(convexG,'convex'));
+
+
+			// 绘制点集合
+			var pointSpheres = new THREE.Object3D();
+			pointSpheres.name = 'pointSpheres';
+
+			points.forEach(function(point){
+				var pointSphere = getPoint();
+				pointSphere.position.copy(point);
+				pointSpheres.add(pointSphere);
+			});
+
+			scene.add(pointSpheres);
+		}
+
+		// 创建点
+		function getPoint() {
+			var pointG = new THREE.SphereGeometry(0.24);
+			var pointM = new THREE.MeshBasicMaterial({color:'red',transparent:false});
+			var point = new THREE.Mesh(pointG,pointM);
+			return point;
+		}
+
+		function addGUI() {
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.redraw = function (e) {
+					controls.reset();
+					scene.remove(scene.getObjectByName('convex'));
+					scene.remove(scene.getObjectByName('pointSpheres'));
+					createConvex();
+				}
+			}
+
+			gui.add(cont,'redraw').onChange(cont.redraw);
+		}
+
+		init();
+		addObject();
+		addGUI();
+		controls = new THREE.OrbitControls(camera,renderer.domElement);
+		controls.saveState();
+		render();
+	</script>
+</body>
+</html>
