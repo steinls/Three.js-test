@@ -44,11 +44,14 @@
 		}
 		
 		function addObject() {
+			// 画一个坛子
 			var points = [];
-			points.push(new THREE.Vector3(1,-2,0));
-			points.push(new THREE.Vector3(3,0,0));
-			points.push(new THREE.Vector3(2,2,0));
-			points.push(new THREE.Vector3(4,4,0));
+			points.push(new THREE.Vector3(0,-5,0));
+			points.push(new THREE.Vector3(5,-5,0));
+			points.push(new THREE.Vector3(8,-2,0));
+			points.push(new THREE.Vector3(7,0,0));
+			points.push(new THREE.Vector3(5,4,0));
+			points.push(new THREE.Vector3(7,6,0));
 
 			// 点集合（线段的点），环面分段，起始绘制，终止绘制
 			var instance = new THREE[instanceObj.geometry](points,20,0,2*Math.PI);
@@ -56,6 +59,7 @@
 		}
 
 		function createMesh(geo,name) {
+			geo.center();
  			var M1 = new THREE.MeshNormalMaterial();
  			M1.side = THREE.DoubleSide;
  			var M2 = new THREE.MeshBasicMaterial();
@@ -70,40 +74,32 @@
 			var p = instance.children[0].geometry.parameters;
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.width = p.width;
-				this.height = p.height;
-				this.depth = p.depth;
+				this.points = p.points;
+				this.segments = p.segments;
+				this.phiStart = p.phiStart;
+				this.phiLength = p.phiLength;
 
-				this.widthSegments = p.widthSegments;
-				this.heightSegments = p.heightSegments;
-				this.depthSegments = p.depthSegments;
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
 
 		 			var instanceG = new THREE[instanceObj.geometry](
-		 					cont.width,
-		 					cont.height,
-		 					cont.depth,
-		 					cont.widthSegments,
-		 					cont.heightSegments,
-		 					cont.depthSegments
+		 					cont.points,
+		 					cont.segments,
+		 					cont.phiStart,
+		 					cont.phiLength
 		 				);
 		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'width',0,30).onChange(cont.redraw);
-			gui.add(cont,'height',0,30).onChange(cont.redraw);
-			gui.add(cont,'depth',0,30).onChange(cont.redraw);
-			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
-
+			gui.add(cont,'segments',0,30).onChange(cont.redraw);
+			gui.add(cont,'phiStart',0,2*Math.PI).onChange(cont.redraw);
+			gui.add(cont,'phiLength',0,2*Math.PI).onChange(cont.redraw);
 		}
 
 		init();
 		addObject();
-		// addGUI();
+		addGUI();
 		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>

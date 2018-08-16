@@ -44,12 +44,10 @@
 		}
 		
 		function addObject() {
-			var m = new THREE.Matrix4();
-			console.log(m);
 
 			var instance = new THREE[instanceObj.geometry](drawShape(),{
 				amount:10,//拉伸值
-				steps:10,//拉伸分段
+				steps:1,//拉伸分段
 				// extrudePath://拉伸路径，默认为z轴
 				// extrudeMaterial://拉伸材质
 				// material://前后面材质
@@ -57,16 +55,17 @@
 				bevelEnabled:false,//是否启用斜角
 				bevelThickness:3,//斜角厚度
 				bevelSize:3,//斜角大小
-				bevelSegments:10,//斜角分段
+				bevelSegments:5,//斜角分段
 
 				curveSegments:12//曲面分段
 			});
 			console.log(createMesh(instance,instanceObj.name))
-
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
 		function createMesh(geo,name) {
+			geo.center();
+
  			var M1 = new THREE.MeshNormalMaterial();
  			M1.side = THREE.DoubleSide;
  			var M2 = new THREE.MeshBasicMaterial();

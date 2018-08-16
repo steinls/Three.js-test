@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>自定义多面体</title>
+	<title>管道</title>
 	<style>
 		body{
 			overflow: hidden;
@@ -13,25 +13,24 @@
 </head>
 <body>
 	<canvas></canvas>
-	<script src="../../libs/three.js"></script>
-	<script src="../../libs/jquery.2.2.2.js"></script>
-	<script src="../../libs/OrbitControls.js"></script>
-	<script src="../../libs/dat.gui.js"></script>
-	<script src="../../libs/SceneUtils.js"></script>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
 	<script>
 		var scene,camera,renderer;
 		var cont;
-		var vertices,faces;
 		var instanceObj = {
-			name:'polyhedron',
-			geometry:'PolyhedronGeometry'
+			name:'tube',
+			geometry:'TubeGeometry'
 		};
 
 		function init() {
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
-			camera.position.set(-30,40,80);
+			camera.position.set(0,0,80);
 			camera.lookAt(scene.position);
 
 			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
@@ -45,24 +44,18 @@
 		}
 		
 		function addObject() {
-			// 多面体点集合
-			vertices = [
-			    -1,-1,-1,    0,-1,-1,    1, 1,-1,    -1, 2,-1,
-			    -1,-1, 1,    0,-1, 1,    1, 1, 1,    -1, 1, 1,
-			];
+			var points = [];
+			for(var i=0;i<15;i++){
+				var point = new THREE.Vector3(
+						-15+Math.random()*30,
+						-15+Math.random()*30,
+						-15+Math.random()*30
+					);
+				points.push(point);
+			}
 
-			// 多面体面集合
-			faces = [
-			    2,1,0,    0,3,2,
-			    0,4,7,    7,3,0,
-			    0,1,5,    5,4,0,
-			    1,2,6,    6,5,1,
-			    2,3,7,    7,6,2,
-			    4,5,6,    6,7,4
-			];
-
-			// 点集合，面集合，大小，额外细节（分为n个三角形）
-			var instance = new THREE[instanceObj.geometry]( vertices, faces, 6, 0 );
+			// 宽，高，深度，宽分段，高分段，深度分段
+			var instance = new THREE[instanceObj.geometry](points);
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -79,32 +72,42 @@
 		function addGUI() {
 			var instance = scene.getObjectByName(instanceObj.name);
 			var p = instance.children[0].geometry.parameters;
-			console.log(p)
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.radius = p.radius;
-				this.detail = p.detail;
+				this.width = p.width;
+				this.height = p.height;
+				this.depth = p.depth;
 
+				this.widthSegments = p.widthSegments;
+				this.heightSegments = p.heightSegments;
+				this.depthSegments = p.depthSegments;
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
 
 		 			var instanceG = new THREE[instanceObj.geometry](
-		 					vertices, 
-		 					faces, 
-		 					cont.radius|0, 
-		 					cont.detail|0
+		 					cont.width,
+		 					cont.height,
+		 					cont.depth,
+		 					cont.widthSegments,
+		 					cont.heightSegments,
+		 					cont.depthSegments
 		 				);
 		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'radius',0,30).onChange(cont.redraw);
-			gui.add(cont,'detail',0,4).onChange(cont.redraw);
+			gui.add(cont,'width',0,30).onChange(cont.redraw);
+			gui.add(cont,'height',0,30).onChange(cont.redraw);
+			gui.add(cont,'depth',0,30).onChange(cont.redraw);
+			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
+
 		}
 
 		init();
 		addObject();
-		addGUI();
+		// addGUI();
 		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>

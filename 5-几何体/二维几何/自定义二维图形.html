@@ -45,6 +45,7 @@
 		}
 
 		function createMesh(geo,name) {
+			geo.center();
  			var M1 = new THREE.MeshNormalMaterial();
  			M1.side = THREE.DoubleSide;
  			var M2 = new THREE.MeshBasicMaterial();
@@ -54,16 +55,60 @@
  			return Mesh;
 		}
 
-		function drawShape() {
-			var shape = new THREE.Shape();
-			// 起点
-			shape.moveTo(-10,-10);
-			shape.lineTo(10,-10);
-			shape.lineTo(10,10);
-			shape.lineTo(-2,10);
+		// function drawShape() {
+		// 	var shape = new THREE.Shape();
+		// 	// 起点
+		// 	shape.moveTo(-10,-10);
+		// 	shape.lineTo(10,-10);
+		// 	shape.lineTo(10,10);
+		// 	shape.lineTo(-2,10);
 
-			return shape;
-		}
+		// 	return shape;
+		// }
+		// 
+		
+		function drawShape() {
+
+            // create a basic shape
+            var shape = new THREE.Shape();
+
+            // startpoint
+            shape.moveTo(10, 10);
+
+            // straight line upwards
+            shape.lineTo(10, 40);
+
+            // the top of the figure, curve to the right
+            shape.bezierCurveTo(15, 25, 25, 25, 30, 40);
+
+            // spline back down
+            shape.splineThru(
+                    [new THREE.Vector2(32, 30),
+                        new THREE.Vector2(28, 20),
+                        new THREE.Vector2(30, 10),
+                    ]);
+
+            // curve at the bottom
+            shape.quadraticCurveTo(20, 15, 10, 10);
+
+            // add 'eye' hole one
+            var hole1 = new THREE.Path();
+            hole1.absellipse(16, 24, 2, 3, 0, Math.PI * 2, true);
+            shape.holes.push(hole1);
+
+            // add 'eye hole 2'
+            var hole2 = new THREE.Path();
+            hole2.absellipse(23, 24, 2, 3, 0, Math.PI * 2, true);
+            shape.holes.push(hole2);
+
+            // add 'mouth'
+            var hole3 = new THREE.Path();
+            hole3.absarc(20, 16, 2, 0, Math.PI, true);
+            shape.holes.push(hole3);
+
+            // return the shape
+            return shape;
+        }
 
 		init();
 		addObject();
