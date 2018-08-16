@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>拉伸体</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont;
+		var instanceObj = {
+			name:'extrude',
+			geometry:'ExtrudeGeometry'
+		};
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			var m = new THREE.Matrix4();
+			console.log(m);
+
+			var instance = new THREE[instanceObj.geometry](drawShape(),{
+				amount:10,//拉伸值
+				steps:10,//拉伸分段
+				// extrudePath://拉伸路径，默认为z轴
+				// extrudeMaterial://拉伸材质
+				// material://前后面材质
+
+				bevelEnabled:false,//是否启用斜角
+				bevelThickness:3,//斜角厚度
+				bevelSize:3,//斜角大小
+				bevelSegments:10,//斜角分段
+
+				curveSegments:12//曲面分段
+			});
+			console.log(createMesh(instance,instanceObj.name))
+
+			scene.add(createMesh(instance,instanceObj.name));
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function addGUI() {
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters.options;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.amount = p.amount;
+				this.steps = p.steps;
+
+				this.bevelEnabled = p.bevelEnabled;
+				this.bevelThickness = p.bevelThickness;
+				this.bevelSize = p.bevelSize;
+				this.bevelSegments = p.bevelSegments;
+
+				this.curveSegments = p.curveSegments;
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName(instanceObj.name));
+
+		 			var instanceG = new THREE[instanceObj.geometry](drawShape(),{
+		 					amount:cont.amount,
+							steps:cont.steps|0,
+
+							bevelEnabled:cont.bevelEnabled,
+							bevelThickness:cont.bevelThickness,
+							bevelSize:cont.bevelSize,
+							bevelSegments:cont.bevelSegments|0,
+
+							curveSegments:cont.curveSegments|0
+		 				});
+		 			scene.add(createMesh(instanceG,instanceObj.name));
+				}
+			}
+
+			gui.add(cont,'amount',0,30).onChange(cont.redraw);
+			gui.add(cont,'steps',0,30).onChange(cont.redraw);
+			
+			gui.add(cont,'bevelEnabled').onChange(cont.redraw);
+			gui.add(cont,'bevelThickness',0,20).onChange(cont.redraw);
+			gui.add(cont,'bevelSize',0,20).onChange(cont.redraw);
+			gui.add(cont,'bevelSegments',0,20).onChange(cont.redraw);
+
+			gui.add(cont,'curveSegments',0,20).onChange(cont.redraw);
+		}
+
+		// function drawShape() {
+		// 	var shape = new THREE.Shape();
+		// 	// 起点
+		// 	shape.moveTo(-10,-10);
+		// 	shape.lineTo(10,-10);
+		// 	shape.lineTo(10,10);
+		// 	shape.lineTo(-2,10);
+
+		// 	return shape;
+		// }
+
+		function drawShape() {
+
+            // create a basic shape
+            var shape = new THREE.Shape();
+
+            // startpoint
+            shape.moveTo(10, 10);
+
+            // straight line upwards
+            shape.lineTo(10, 40);
+
+            // the top of the figure, curve to the right
+            shape.bezierCurveTo(15, 25, 25, 25, 30, 40);
+
+            // spline back down
+            shape.splineThru(
+                    [new THREE.Vector2(32, 30),
+                        new THREE.Vector2(28, 20),
+                        new THREE.Vector2(30, 10),
+                    ]);
+
+            // curve at the bottom
+            shape.quadraticCurveTo(20, 15, 10, 10);
+
+            // add 'eye' hole one
+            var hole1 = new THREE.Path();
+            hole1.absellipse(16, 24, 2, 3, 0, Math.PI * 2, true);
+            shape.holes.push(hole1);
+
+            // add 'eye hole 2'
+            var hole2 = new THREE.Path();
+            hole2.absellipse(23, 24, 2, 3, 0, Math.PI * 2, true);
+            shape.holes.push(hole2);
+
+            // add 'mouth'
+            var hole3 = new THREE.Path();
+            hole3.absarc(20, 16, 2, 0, Math.PI, true);
+            shape.holes.push(hole3);
+
+            // return the shape
+            return shape;
+        }
+
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>

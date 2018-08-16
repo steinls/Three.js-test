@@ -2,49 +2,56 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>平面</title>
+	<title>线旋转体</title>
 	<style>
 		body{
+			overflow: hidden;
 			margin:0;
 			padding: 0;
-			overflow: hidden;
 		}
 	</style>
 </head>
 <body>
 	<canvas></canvas>
-	<script src="../../libs/three.js"></script>
-	<script src="../../libs/jquery.2.2.2.js"></script>
-	<script src="../../libs/OrbitControls.js"></script>
-	<script src="../../libs/SceneUtils.js"></script>
-	<script src="../../libs/dat.gui.js"></script>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script src="../libs/SceneUtils.js"></script>
 	<script>
 		var scene,camera,renderer;
 		var cont;
 		var instanceObj = {
-			name:'plane',
-			geometry:'PlaneGeometry'
+			name:'lathe',
+			geometry:'LatheGeometry'
 		};
+
 		function init() {
 			scene = new THREE.Scene();
 
 			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
-			camera.position.set(-30,0,80);
+			camera.position.set(0,0,80);
 			camera.lookAt(scene.position);
 
 			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
 			renderer.setSize(window.innerWidth,window.innerHeight);
-			renderer.setClearColor(0x000000);
+			renderer.setClearColor('gray');
 		}
 
 		function render() {
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
-
+		
 		function addObject() {
-			// 宽，高，宽分段，高分段
-			var instance = new THREE[instanceObj.geometry](10,10,4,4);
+			var points = [];
+			points.push(new THREE.Vector3(1,-2,0));
+			points.push(new THREE.Vector3(3,0,0));
+			points.push(new THREE.Vector3(2,2,0));
+			points.push(new THREE.Vector3(4,4,0));
+
+			// 点集合（线段的点），环面分段，起始绘制，终止绘制
+			var instance = new THREE[instanceObj.geometry](points,20,0,2*Math.PI);
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -59,39 +66,45 @@
 		}
 
 		function addGUI() {
-			var plane = scene.getObjectByName('plane');
-			var planeG = plane.children[0].geometry;
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters;
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.width = planeG.parameters.width;
-				this.height = planeG.parameters.height;
-				this.heightSegments = planeG.parameters.heightSegments;
-				this.widthSegments = planeG.parameters.widthSegments;
+				this.width = p.width;
+				this.height = p.height;
+				this.depth = p.depth;
+
+				this.widthSegments = p.widthSegments;
+				this.heightSegments = p.heightSegments;
+				this.depthSegments = p.depthSegments;
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
 
 		 			var instanceG = new THREE[instanceObj.geometry](
 		 					cont.width,
 		 					cont.height,
-		 					cont.heightSegments|0,
-		 					cont.widthSegments|0
+		 					cont.depth,
+		 					cont.widthSegments,
+		 					cont.heightSegments,
+		 					cont.depthSegments
 		 				);
 		 			scene.add(createMesh(instanceG,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'width',0,40).onChange(cont.redraw);
-			gui.add(cont,'height',0,40).onChange(cont.redraw);
+			gui.add(cont,'width',0,30).onChange(cont.redraw);
+			gui.add(cont,'height',0,30).onChange(cont.redraw);
+			gui.add(cont,'depth',0,30).onChange(cont.redraw);
 			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
 			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
 
 		}
 
-
 		init();
 		addObject();
-		addGUI();
-		var controls = new THREE.OrbitControls(camera,renderer.domElement);
+		// addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>
 </body>

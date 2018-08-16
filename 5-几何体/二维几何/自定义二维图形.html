@@ -40,11 +40,18 @@
 		}
 
 		function addObject() {
-			var freeFigureG = new THREE.ShapeGeometry(drawShape());
-			var freeFigureM1 = new THREE.MeshNormalMaterial({side:THREE.DoubleSide});
-			var freeFigureM2 = new THREE.MeshBasicMaterial({color:'gray',wireframe:true});
-			var freeFigure = new THREE.SceneUtils.createMultiMaterialObject(freeFigureG,[freeFigureM1,freeFigureM2]);
-			scene.add(freeFigure);
+			var geo = new THREE.ShapeGeometry(drawShape());
+			scene.add(createMesh(geo,'freeFigure'));
+		}
+
+		function createMesh(geo,name) {
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
 		}
 
 		function drawShape() {
