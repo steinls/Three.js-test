@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>方块</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script src="../../libs/SceneUtils.js"></script>
+	<script src="../../libs/ParametricGeometries.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont,radialWave;
+		var instanceObj = {
+			name:'parametric',
+			geometry:'ParametricGeometry'
+		};
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			radialWave = function (u, v, target) {
+				console.log(v)
+				// u和v在0~1之间，
+				// 就像扫描器般，从0到1绘制，
+				// 绘制双面相当于扫描器在返回扫描一次
+				// x,y,z对应三个扫描器
+
+	            var r = 30;
+	            // 确定x轴坐标
+	            var x = Math.sin(u) * r;	
+	           	// 确定z轴坐标
+	            var z = Math.sin(v / 2) * 2 * r;   
+	            // 确定y轴坐标
+	            var y = (Math.sin(u * 4 * Math.PI) + Math.cos(v * 2 * Math.PI)) * 2.8;
+	            target.set(x, y, z);
+	        };
+
+	        //函数，定义u该分成多少份，定义v该分成多少份
+			var instance = new THREE[instanceObj.geometry](radialWave,10,10);
+			var mesh = createMesh(instance,instanceObj.name);
+			scene.add(mesh);
+
+			// var instance = new THREE[instanceObj.geometry](THREE.ParametricGeometries.klein,20,20);
+			// var mesh = createMesh(instance,instanceObj.name);
+			// mesh.translateX(-20);
+			// scene.add(mesh);
+
+			// var instance = new THREE[instanceObj.geometry](THREE.ParametricGeometries.mobius3d,20,20);
+			// var mesh = createMesh(instance,instanceObj.name);
+			// scene.add(mesh);
+		}
+
+		function createMesh(geo,name) {
+			geo.center();
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			// M1.side = THREE.DoubleSide;//解开注释就是绘制双面
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function addGUI() {
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.slices = p.slices;
+				this.stacks = p.stacks;
+
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName(instanceObj.name));
+
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					radialWave,
+		 					cont.slices|0,
+							cont.stacks|0
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
+				}
+			}
+
+			gui.add(cont,'slices',0,30).onChange(cont.redraw);
+			gui.add(cont,'stacks',0,30).onChange(cont.redraw);
+
+
+		}
+
+		init();
+		addObject();
+		addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>
