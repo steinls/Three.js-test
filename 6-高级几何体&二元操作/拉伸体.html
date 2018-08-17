@@ -46,7 +46,7 @@
 		function addObject() {
 
 			var instance = new THREE[instanceObj.geometry](drawShape(),{
-				amount:10,//拉伸值
+				depth:10,//拉伸值
 				steps:1,//拉伸分段
 				// extrudePath://拉伸路径，默认为z轴
 				// extrudeMaterial://拉伸材质
@@ -59,7 +59,6 @@
 
 				curveSegments:12//曲面分段
 			});
-			console.log(createMesh(instance,instanceObj.name))
 			scene.add(createMesh(instance,instanceObj.name));
 		}
 
@@ -80,7 +79,7 @@
 			var p = instance.children[0].geometry.parameters.options;
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.amount = p.amount;
+				this.depth = p.depth;
 				this.steps = p.steps;
 
 				this.bevelEnabled = p.bevelEnabled;
@@ -93,7 +92,7 @@
 					scene.remove(scene.getObjectByName(instanceObj.name));
 
 		 			var instanceG = new THREE[instanceObj.geometry](drawShape(),{
-		 					amount:cont.amount,
+		 					depth:cont.depth,
 							steps:cont.steps|0,
 
 							bevelEnabled:cont.bevelEnabled,
@@ -107,7 +106,7 @@
 				}
 			}
 
-			gui.add(cont,'amount',0,30).onChange(cont.redraw);
+			gui.add(cont,'depth',0,30).onChange(cont.redraw);
 			gui.add(cont,'steps',0,30).onChange(cont.redraw);
 			
 			gui.add(cont,'bevelEnabled').onChange(cont.redraw);

@@ -39,7 +39,7 @@
 		}
 
 		function addObject(){
-			var groundT = new THREE.TextureLoader().load('../img/texture/ground.jpg')
+			var groundT = new THREE.TextureLoader().load('../assets/texture/ground.jpg')
 			groundT.wrapS = THREE.RepeatWrapping;
 			groundT.wrapT = THREE.RepeatWrapping;
 			groundT.repeat.set(4,4);
@@ -101,8 +101,8 @@
 			scene.add(directinalLight);
 
 
-      var t1 = new THREE.TextureLoader().load('../img/texture/lensflare0_alpha.png');
-      var t2 = new THREE.TextureLoader().load('../img/texture/lensflare3.png');
+      var t1 = new THREE.TextureLoader().load('../assets/texture/lensflare0_alpha.png');
+      var t2 = new THREE.TextureLoader().load('../assets/texture/lensflare3.png');
 
       var lensflare = new THREE.Lensflare();
       lensflare.addElement(new THREE.LensflareElement(t1,350,0,pointLight.color));
