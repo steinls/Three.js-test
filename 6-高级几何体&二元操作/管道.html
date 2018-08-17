@@ -44,22 +44,34 @@
 		}
 		
 		function addObject() {
+			// 创建实例
+			var instance = new THREE[instanceObj.geometry](
+					createCurve(),
+					30,2,20,true
+				);
+
+			scene.add(createMesh(instance,instanceObj.name));
+
+		}
+
+		function createCurve(){
+			// 随机点
 			var points = [];
-			for(var i=0;i<15;i++){
-				var point = new THREE.Vector3(
-						-15+Math.random()*30,
-						-15+Math.random()*30,
-						-15+Math.random()*30
-					);
+			for(var i=0;i<14;i++){
+				var x = -15+Math.random()*50;
+				var y = -15+Math.random()*40;
+				var z =	-15+Math.random()*30;
+				var point = new THREE.Vector3(x,y,z);
 				points.push(point);
 			}
 
-			// 宽，高，深度，宽分段，高分段，深度分段
-			var instance = new THREE[instanceObj.geometry](points);
-			scene.add(createMesh(instance,instanceObj.name));
+			// 根据随机点集合，创建曲线
+			var splineCurve3 = new THREE.CatmullRomCurve3(points);
+			return splineCurve3;
 		}
 
 		function createMesh(geo,name) {
+			geo.center();
  			var M1 = new THREE.MeshNormalMaterial();
  			M1.side = THREE.DoubleSide;
  			var M2 = new THREE.MeshBasicMaterial();
@@ -69,45 +81,59 @@
  			return Mesh;
 		}
 
+
+
 		function addGUI() {
 			var instance = scene.getObjectByName(instanceObj.name);
 			var p = instance.children[0].geometry.parameters;
 			var gui = new dat.GUI();
+			console.log(p)
 			cont = new function () {
-				this.width = p.width;
-				this.height = p.height;
-				this.depth = p.depth;
+				this.path = p.path;
+				this.tubularSegments = p.tubularSegments;
+				this.radius = p.radius;
+				this.radialSegments = p.radialSegments;
+				this.closed = p.closed;
 
-				this.widthSegments = p.widthSegments;
-				this.heightSegments = p.heightSegments;
-				this.depthSegments = p.depthSegments;
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
+				
+					var instance = new THREE[instanceObj.geometry](
+							cont.path,
+							cont.tubularSegments|0,
+							cont.radius,
+							cont.radialSegments|0,
+							cont.closed
+						);
 
-		 			var instanceG = new THREE[instanceObj.geometry](
-		 					cont.width,
-		 					cont.height,
-		 					cont.depth,
-		 					cont.widthSegments,
-		 					cont.heightSegments,
-		 					cont.depthSegments
-		 				);
-		 			scene.add(createMesh(instanceG,instanceObj.name));
+					scene.add(createMesh(instance,instanceObj.name));
+				}
+
+				this.randomRedraw = function () {
+					scene.remove(scene.getObjectByName(instanceObj.name));
+					
+					var instance = new THREE[instanceObj.geometry](
+							createCurve(),
+							cont.tubularSegments,
+							cont.radius,
+							cont.radialSegments,
+							cont.closed
+						);
+
+					scene.add(createMesh(instance,instanceObj.name));
 				}
 			}
 
-			gui.add(cont,'width',0,30).onChange(cont.redraw);
-			gui.add(cont,'height',0,30).onChange(cont.redraw);
-			gui.add(cont,'depth',0,30).onChange(cont.redraw);
-			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
-
+			gui.add(cont,'tubularSegments',0,50).onChange(cont.redraw);
+			gui.add(cont,'radius',0,30).onChange(cont.redraw);
+			gui.add(cont,'radialSegments',0,50).onChange(cont.redraw);
+			gui.add(cont,'closed').onChange(cont.redraw);
+			gui.add(cont,'randomRedraw');
 		}
 
 		init();
 		addObject();
-		// addGUI();
+		addGUI();
 		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>
