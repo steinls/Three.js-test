@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>3d文字</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script src="../../libs/SceneUtils.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var cont;
+		var instanceObj = {
+			name:'text',
+			geometry:'TextGeometry'
+		};
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,300);
+			camera.position.set(0,0,80);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(window.innerWidth,window.innerHeight);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		
+		function addObject() {
+			// 必须先使用three.js的在线工具吧字体文件转化为json或者js
+			// 文档font加载器中有在线工具链接
+			// json需要加载器
+			// js直接引入即可
+			var loader = new THREE.FontLoader();
+			loader.load('../../assets/font/Barkentina 1_Regular.json',function(font){
+				var instance = new THREE.TextGeometry( '3D text', {
+					font: font,
+					size: 80,
+					height: 5,
+					curveSegments: 12,
+					bevelEnabled: true,
+					bevelThickness: 5,
+					bevelSize: 4,
+					bevelSegments: 5
+				} );
+				var mesh = createMesh(instance,instanceObj.name);
+				mesh.scale.set(0.2,0.2,0.2);
+				scene.add(mesh);
+			})
+		}
+
+		function createMesh(geo,name) {
+			geo.center();
+ 			var M1 = new THREE.MeshNormalMaterial();
+ 			M1.side = THREE.DoubleSide;
+ 			var M2 = new THREE.MeshBasicMaterial();
+ 			M2.wireframe = true;
+ 			var Mesh = new THREE.SceneUtils.createMultiMaterialObject(geo,[M1,M2]);
+ 			Mesh.name = name;
+ 			return Mesh;
+		}
+
+		function addGUI() {
+			var instance = scene.getObjectByName(instanceObj.name);
+			var p = instance.children[0].geometry.parameters;
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.width = p.width;
+				this.height = p.height;
+				this.depth = p.depth;
+
+				this.widthSegments = p.widthSegments;
+				this.heightSegments = p.heightSegments;
+				this.depthSegments = p.depthSegments;
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName(instanceObj.name));
+
+		 			var instanceG = new THREE[instanceObj.geometry](
+		 					cont.width,
+		 					cont.height,
+		 					cont.depth,
+		 					cont.widthSegments,
+		 					cont.heightSegments,
+		 					cont.depthSegments
+		 				);
+		 			scene.add(createMesh(instanceG,instanceObj.name));
+				}
+			}
+
+			gui.add(cont,'width',0,30).onChange(cont.redraw);
+			gui.add(cont,'height',0,30).onChange(cont.redraw);
+			gui.add(cont,'depth',0,30).onChange(cont.redraw);
+			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
+			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
+
+		}
+
+		init();
+		addObject();
+		// addGUI();
+		new THREE.OrbitControls(camera,renderer.domElement);
+		render();
+	</script>
+</body>
+</html>
