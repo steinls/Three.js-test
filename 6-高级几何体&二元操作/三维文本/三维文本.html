@@ -48,11 +48,14 @@
 			// 文档font加载器中有在线工具链接
 			// json需要加载器
 			// js直接引入即可
+			// 
+			// 乱码：????
+			// 是因为字体文件不识别此文字，使用能识别的字体文件就好了
 			var loader = new THREE.FontLoader();
-			loader.load('../../assets/font/Barkentina 1_Regular.json',function(font){
-				var instance = new THREE.TextGeometry( '3D text', {
+			loader.load('../../assets/font/zhulangyahei.json',function(font){
+				var instance = new THREE[instanceObj.geometry]( '3D文本\n(逐浪雅黑)', {
 					font: font,
-					size: 80,
+					size: 40,
 					height: 5,
 					curveSegments: 12,
 					bevelEnabled: true,
@@ -63,6 +66,8 @@
 				var mesh = createMesh(instance,instanceObj.name);
 				mesh.scale.set(0.2,0.2,0.2);
 				scene.add(mesh);
+
+				addGUI();
 			})
 		}
 
@@ -79,43 +84,58 @@
 
 		function addGUI() {
 			var instance = scene.getObjectByName(instanceObj.name);
-			var p = instance.children[0].geometry.parameters;
+			var p = instance.children[0].geometry.parameters.parameters;
 			var gui = new dat.GUI();
 			cont = new function () {
-				this.width = p.width;
-				this.height = p.height;
-				this.depth = p.depth;
+				this.text = instance.children[0].geometry.parameters.text
 
-				this.widthSegments = p.widthSegments;
-				this.heightSegments = p.heightSegments;
-				this.depthSegments = p.depthSegments;
+				this.font = p.font;
+				this.size = p.size;
+				this.height = p.height;
+
+				this.curveSegments = p.curveSegments;
+
+				this.bevelEnabled = p.bevelEnabled;
+				this.bevelThickness = p.bevelThickness;
+				this.bevelSize = p.bevelSize;
+				this.bevelSegments = p.bevelSegments;
+				
 				this.redraw = function () {
 					scene.remove(scene.getObjectByName(instanceObj.name));
 
-		 			var instanceG = new THREE[instanceObj.geometry](
-		 					cont.width,
-		 					cont.height,
-		 					cont.depth,
-		 					cont.widthSegments,
-		 					cont.heightSegments,
-		 					cont.depthSegments
-		 				);
-		 			scene.add(createMesh(instanceG,instanceObj.name));
+		 			var instanceG = new THREE[instanceObj.geometry](cont.text,{
+		 					font:cont.font,
+		 					size:cont.size,
+		 					height:cont.height,
+
+		 					curveSegments:cont.curveSegments,
+
+		 					bevelEnabled:cont.bevelEnabled,
+		 					bevelThickness:cont.bevelThickness,
+		 					bevelSize:cont.bevelSize,
+		 					bevelSegments:cont.bevelSegments
+		 				});
+		 			var mesh = createMesh(instanceG,instanceObj.name);
+		 			mesh.scale.set(0.2,0.2,0.2);
+		 			scene.add(mesh);
 				}
 			}
+			gui.add(cont,'text').onChange(cont.redraw);
 
-			gui.add(cont,'width',0,30).onChange(cont.redraw);
+			gui.add(cont,'size',0,100).onChange(cont.redraw);
 			gui.add(cont,'height',0,30).onChange(cont.redraw);
-			gui.add(cont,'depth',0,30).onChange(cont.redraw);
-			gui.add(cont,'widthSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'heightSegments',0,20).onChange(cont.redraw);
-			gui.add(cont,'depthSegments',0,20).onChange(cont.redraw);
+
+			gui.add(cont,'curveSegments',0,50).onChange(cont.redraw);
+
+			gui.add(cont,'bevelEnabled').onChange(cont.redraw);
+			gui.add(cont,'bevelThickness',0,30).onChange(cont.redraw);
+			gui.add(cont,'bevelSize',0,20).onChange(cont.redraw);
+			gui.add(cont,'bevelSegments',0,50).onChange(cont.redraw);
 
 		}
 
 		init();
 		addObject();
-		// addGUI();
 		new THREE.OrbitControls(camera,renderer.domElement);
 		render();
 	</script>
