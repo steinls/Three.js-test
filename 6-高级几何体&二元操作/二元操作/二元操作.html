@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>二元操作</title>
+	<style>
+		body{
+			overflow: hidden;
+			padding: 0;
+			margin:0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+
+	<script src="../../libs/three.js"></script>
+	<script src="../../libs/jquery.2.2.2.js"></script>
+	<script src="../../libs/ThreeBSP.js"></script>
+	<script src="../../libs/OrbitControls.js"></script>
+	<script src="../../libs/DragControls.js"></script>
+	<script src="../../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var w = window.innerWidth, h = window.innerHeight;
+		var drag,orbit; 
+
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45,w/h,0.1,400);
+			camera.position.set(-30,40,30);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({canvas:$('canvas')[0]});
+			renderer.setSize(w, h);
+			renderer.setClearColor('gray');
+		}
+
+		function render() {
+			orbit.update();
+			
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+		var sphere2,sphere1;
+		function addObject() {
+			function createMesh(geom) {
+
+			    // assign two materials
+			    var meshMaterial = new THREE.MeshNormalMaterial();
+			    meshMaterial.side = THREE.DoubleSide;
+			    var wireFrameMat = new THREE.MeshBasicMaterial({transparent: true, opacity: 0.5, wireframeLinewidth: 0.5});
+			    wireFrameMat.wireframe = true;
+
+			    // create a multimaterial
+			    var mesh = new THREE.Mesh(geom, wireFrameMat);
+
+			    return mesh;
+			}
+
+			sphere1 = createMesh(new THREE.SphereGeometry(5, 20, 30));
+			sphere1.position.x = -2;
+			sphere1.name = 'sp1';
+			scene.add(sphere1);
+
+
+			sphere2 = createMesh(new THREE.SphereGeometry(5, 20, 30));
+			sphere2.position.set(3, 0, 0);
+			sphere1.name = 'sp2';
+
+			scene.add(sphere2);
+
+		}
+
+		function initDrag() {
+			drag = new THREE.DragControls(scene.children,camera,renderer.domElement);
+
+			drag.addEventListener('dragstart',function() {
+				orbit.enabled = false;
+			});
+
+			drag.addEventListener('dragend',function() {
+				orbit.enabled = true;
+			});
+		}
+
+		function initOrbit() {
+			orbit = new THREE.OrbitControls(camera,renderer.domElement);
+		}
+
+		function addGUI() {
+			var gui = new dat.GUI();
+			var cont = new function () {
+				this.subtract = function () {
+			        var sphere1BSP = new ThreeBSP(sphere1);
+			        var sphere2BSP = new ThreeBSP(sphere2);
+
+			        var resultBSP = sphere1BSP.subtract(sphere2BSP);
+
+		            result = resultBSP.toMesh();
+		            result.geometry.computeFaceNormals();
+		            result.geometry.computeVertexNormals();
+		            scene.add(result);
+				}
+			}
+
+			gui.add(cont,'subtract');
+		}
+
+		init();
+		addObject();
+		initDrag();
+		initOrbit();
+		addGUI();
+		render();
+	</script>
+</body>
+</html>
