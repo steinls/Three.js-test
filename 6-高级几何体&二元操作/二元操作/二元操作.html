@@ -58,18 +58,17 @@
 
 			    return mesh;
 			}
+			cube = createMesh(new THREE.SphereGeometry(5, 20, 30));
+			cube.position.x = -2;
+			cube.name = 'cube';
+			scene.add(cube);
 
-			sphere1 = createMesh(new THREE.SphereGeometry(5, 20, 30));
-			sphere1.position.x = -2;
-			sphere1.name = 'sp1';
-			scene.add(sphere1);
 
+			sphere = createMesh(new THREE.BoxGeometry(1, 14, 14,5,30,30));
+			sphere.position.set(3, 0, 0);
+			sphere.name = 'sphere';
 
-			sphere2 = createMesh(new THREE.SphereGeometry(5, 20, 30));
-			sphere2.position.set(3, 0, 0);
-			sphere1.name = 'sp2';
-
-			scene.add(sphere2);
+			scene.add(sphere);
 
 		}
 
@@ -89,23 +88,40 @@
 			orbit = new THREE.OrbitControls(camera,renderer.domElement);
 		}
 
+		
+
+		function eryuan(fnName){
+	        var sphere1BSP = new ThreeBSP(scene.getObjectByName('cube'));
+	        var sphere2BSP = new ThreeBSP(scene.getObjectByName('sphere'));
+
+	        var resultBSP = sphere1BSP[fnName](sphere2BSP);
+
+            var result = resultBSP.toMesh();
+            result.geometry.computeFaceNormals();
+            result.geometry.computeVertexNormals();
+            scene.add(result);
+		}
+
 		function addGUI() {
+
 			var gui = new dat.GUI();
 			var cont = new function () {
-				this.subtract = function () {
-			        var sphere1BSP = new ThreeBSP(sphere1);
-			        var sphere2BSP = new ThreeBSP(sphere2);
+				this.subtract = function(){
+					eryuan('subtract');
+				};
 
-			        var resultBSP = sphere1BSP.subtract(sphere2BSP);
+				this.intersect = function(){
+					eryuan('intersect');
+				};
 
-		            result = resultBSP.toMesh();
-		            result.geometry.computeFaceNormals();
-		            result.geometry.computeVertexNormals();
-		            scene.add(result);
-				}
+				this.union = function(){
+					eryuan('union');
+				};
 			}
 
 			gui.add(cont,'subtract');
+			gui.add(cont,'intersect');
+			gui.add(cont,'union');
 		}
 
 		init();
