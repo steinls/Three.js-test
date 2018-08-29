@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>例子：粒子云</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script src="../libs/dat.gui.js"></script>
+	<script>
+		var scene,camera,renderer,cont;
+		var w = window.innerWidth, h = window.innerHeight;
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45, w/h, 0.1,1000);
+			camera.position.set(0,0,140);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({
+				canvas:$('canvas')[0]
+			});
+			renderer.setSize(w,h);
+		}
+
+		function addObject() {
+			createParticles({
+				size:6,
+				transparent:true,
+				opacity:0.6,
+				setAttenuation:false,
+				vertexColors:false,
+				color:'#149814'
+			});
+		}
+
+		function createParticles(obj) {
+			obj=obj||{};
+
+			var g = new THREE.Geometry();
+			var m = new THREE.PointsMaterial({
+				//粒子大小
+				size:obj.size||1,
+				//是否透明，决定opacity是否生效
+				transparent:obj.transparent||true,
+				//透明度
+				opacity:obj.opacity||1,
+				//是否尺寸不随距离衰减
+				sizeAttenuation:obj.sizeAttenuation||true,
+				//顶点颜色是否使用几何的colors数组的值
+				vertexColors:obj.vertexColors||false,
+				// 所有粒子颜色，会被vertexColors覆盖
+				color:obj.color||0xffffff
+			});
+
+			var range = 1000;
+
+			for(var i=0;i<15000;i++){
+				var particle = new THREE.Vector3(
+					Math.random()*range/2,
+					Math.random()*range/2,
+					Math.random()*range/2
+				);
+
+				g.vertices.push(particle);
+			
+				var color = new THREE.Color(0x00ff00);
+				color.setHSL(
+					color.getHSL.h,//颜色值
+					color.getHSL.s,//饱和值，越低越灰，否则越鲜艳
+					color.getHSL.l*Math.random()//透明度
+				);
+
+				g.colors.push(color);
+			}
+			g.center();
+
+			var particleCloud = new THREE.Points(g,m);
+			particleCloud.name = 'particleCloud';
+			scene.add(particleCloud);
+		}
+
+		function render(){
+			var mesh = scene.getObjectByName('particleCloud');
+			mesh.rotation.x+=0.01;
+			mesh.rotation.y+=0.01;
+			mesh.rotation.z+=0.01;
+
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addControls() {
+			new THREE.OrbitControls(camera,renderer.domElement);
+		}
+
+		function addGUI(){
+			var gui = new dat.GUI();
+			cont = new function () {
+				this.size = 6;
+				this.color = '#149814';
+				this.transparent = true;
+				this.opacity = 0.6;
+				this.setAttenuation = false;
+				this.vertexColors = false;
+				this.redraw = function () {
+					scene.remove(scene.getObjectByName('particleCloud'));
+					createParticles({
+						size:cont.size,
+						color:new THREE.Color(cont.color),
+						transparent:cont.transparent,
+						opacity:cont.opacity,
+						setAttenuation:cont.setAttenuation,
+						vertexColors:cont.vertexColors
+					});
+				}
+			};
+
+			gui.add(cont,'size',0,20).onChange(cont.redraw);
+			gui.addColor(cont,'color').onChange(cont.redraw);
+			gui.add(cont,'transparent').onChange(cont.redraw);
+			gui.add(cont,'opacity',0,1).onChange(cont.redraw);
+			gui.add(cont,'setAttenuation').onChange(cont.redraw);
+			gui.add(cont,'vertexColors').onChange(cont.redraw);
+		}
+
+		init();
+		addObject();
+		addControls();
+		addGUI();
+		render();
+	</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>粒子系统</title>
+	<style>
+		body{
+			overflow: hidden;
+			margin:0;
+			padding: 0;
+		}
+	</style>
+</head>
+<body>
+	<canvas></canvas>
+	<script src="../libs/three.js"></script>
+	<script src="../libs/jquery.2.2.2.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
+	<script>
+		var scene,camera,renderer;
+		var w = window.innerWidth, h = window.innerHeight;
+		function init() {
+			scene = new THREE.Scene();
+
+			camera = new THREE.PerspectiveCamera(45, w/h, 0.1,400);
+			camera.position.set(0,0,240);
+			camera.lookAt(scene.position);
+
+			renderer = new THREE.WebGLRenderer({
+				canvas:$('canvas')[0]
+			});
+			renderer.setSize(w,h);
+			renderer.setClearColor('gray');
+		}
+
+		function addObject() {
+          	var g = new THREE.Geometry();
+          	var m = new THREE.PointsMaterial({size: 4, vertexColors: true, color: 0xffffff});
+
+          	for (var x = -5; x < 5; x++) {
+          	    for (var y = -5; y < 5; y++) {
+          	        var particle = new THREE.Vector3(x * 10, y * 10, 0);
+          	        // 添加点
+          	        g.vertices.push(particle);
+          	        // 设置点颜色
+          	        g.colors.push(new THREE.Color(Math.random() * 0x00ffff));
+          	    }
+          	}
+
+          	// 创建点云
+          	var cloud = new THREE.Points(g, m);
+          	scene.add(cloud);
+		}
+
+		function render(){
+			requestAnimationFrame(render);
+			renderer.render(scene,camera);
+		}
+
+		function addControls() {
+			new THREE.OrbitControls(camera,renderer.domElement);
+		}
+
+		init();
+		addObject();
+		addControls();
+		render();
+	</script>
+</body>
+</html>
