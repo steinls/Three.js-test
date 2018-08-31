@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - level-of-details</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#000;
+				color:#fff;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family: Monospace;
+				font-size: 13px;
+				text-align: center;
+				z-index:100;
+			}
+			a { color:red }
+		</style>
+	</head>
+
+	<body>
+		<canvas></canvas>
+
+
+		<script src="../libs/three.js"></script>
+		<script src="../libs/OrbitControls.js"></script>
+		<script src="../libs/jquery.2.2.2.js"></script>
+
+		<script>
+			var camera, scene, renderer;
+			var geometry, objects;
+			var controls;
+
+			function init() {
+				scene = new THREE.Scene();
+				scene.fog = new THREE.Fog( 0x000000, 1, 15000 );
+				scene.autoUpdate = false;
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 15000 );
+				camera.position.z = 400;
+				
+				renderer = new THREE.WebGLRenderer( { antialias: true ,canvas:$('canvas')[0]} );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+			}
+
+			function addObject() {
+				var lod = new THREE.LOD();
+				//Create spheres with 3 levels of detail and create new LOD levels for them
+				var material = new THREE.MeshLambertMaterial( { color: 0xffffff, wireframe: true } );
+				for( var i = 0; i < 5; i++ ) {
+
+					var geometry = new THREE.BoxGeometry( 10,10,10,5-i,5-i,5-i )
+
+					var mesh = new THREE.Mesh( geometry, material );
+
+					lod.addLevel( mesh, i * 100 );
+
+				}
+
+				scene.add( lod );
+			}
+
+			function render() {
+				requestAnimationFrame(render);
+
+				scene.updateMatrixWorld();
+				scene.traverse( function ( object ) {
+					if ( object instanceof THREE.LOD ) {
+						object.update( camera );
+					}
+				} );
+				renderer.render( scene, camera );
+			}
+
+			function addLight() {
+				var light = new THREE.PointLight( 0xff2200 );
+				light.position.set( 0, 0, 0 );
+				scene.add( light );
+				var light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, 0, 1 ).normalize();
+				scene.add( light );
+			}
+
+			init();
+			addObject();
+			addLight();
+			controls = new THREE.OrbitControls(camera)
+			render();
+		</script>
+	</body>
+</html>
