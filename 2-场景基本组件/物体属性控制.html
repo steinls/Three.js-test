@@ -37,7 +37,7 @@
 
 			renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth,window.innerHeight);
-			renderer.shadowMapEnabled = true;
+			renderer.shadowMap.enabled = true;
 			$('.output').append(renderer.domElement);
 		}
 

@@ -20,9 +20,9 @@
 <body>
 	<p>请使用鼠标滚轮测试</p>
 	<canvas></canvas>
-	<script src="../libs-old/three-old.js"></script>
+	<script src="../libs/three.js"></script>
 	<script src="../libs/jquery.2.2.2.js"></script>
-	<script src="../libs-old/OrbitControls.js"></script>
+	<script src="../libs/OrbitControls.js"></script>
 	<script>
 		var scene,camera,renderer;
 		var control;
@@ -40,7 +40,6 @@
 		}
 
 		function render(){
-			control.update();
 			requestAnimationFrame(render);
 			renderer.render(scene,camera);
 		}
@@ -54,7 +53,8 @@
 		}
 		function addObject(){
 			var cubeG = new THREE.BoxGeometry(4,4,4);
-			var cubeM = new THREE.MeshDepthMaterial();
+			var cubeM = new THREE.MeshDepthMaterial({
+			});
 			console.log(cubeM)
 			var cube = new THREE.Mesh(cubeG,cubeM);
 			scene.add(cube);
