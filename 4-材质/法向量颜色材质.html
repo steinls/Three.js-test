@@ -61,6 +61,10 @@
 				// 创建箭头
 				// 参数：
 				// 方向，箭头起始点，长度，颜色，箭头宽，箭头高
+				if(k<2){
+					console.log('111');
+					console.log(v.normal);
+				}
 				var arrow = new THREE.ArrowHelper(v.normal,centroid,2,0x000000,0.2,0.2);
 				arrow.name = 'arrow';
 				scene.add(arrow);

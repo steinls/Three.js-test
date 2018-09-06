@@ -41,7 +41,7 @@
       e.preventDefault();
       
       // 将鼠标位置转化为标准化设备坐标
-      rect = dom.getBoundingClientRect();
+      rect = this.dom.getBoundingClientRect();
       this.mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       this.mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       
